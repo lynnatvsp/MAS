@@ -1,0 +1,94 @@
+/*------------------SA and Cigna and Metlife------------------*/
+SELECT
+COUNT(primary_individual_identifier)
+, C_Strategic_Alliance_Code1 
+
+FROM VC_EC_Entry v
+JOIN Data_Consumer_Load cd
+ON v.email_address = cd.C_EmailAddress 
+
+GROUP BY
+C_Strategic_Alliance_Code1 
+
+
+
+/*------------------SBU------------------*/
+SELECT
+COUNT(primary_individual_identifier)
+, cd.C_Strategic_Business_Unit1 
+
+FROM VC_EC_Entry v
+JOIN Data_Consumer_Load cd
+ON v.email_address = cd.C_EmailAddress 
+
+GROUP BY
+cd.C_Strategic_Business_Unit1 
+
+
+
+/*------------------DNC------------------*/
+SELECT
+COUNT(primary_individual_identifier)
+, cd.C_Do_Not_Contact1 
+, cd.C_Email_Source_Code1 
+
+FROM VC_EC_Entry v
+JOIN Data_Consumer_Load cd
+ON v.email_address = cd.C_EmailAddress 
+
+GROUP BY
+cd.C_Do_Not_Contact1 
+, cd.C_Email_Source_Code1 
+
+
+
+/*------------------Benefits Pref SF------------------*/
+SELECT
+COUNT(primary_individual_identifier)
+
+FROM VC_EC_Entry v
+
+WHERE 
+EXISTS 
+(SELECT email_address 
+FROM [CDP_GR_Individual_Preferences] pref
+WHERE  v.email_address = pref.email_address
+AND 
+pref.Opt_In_VC_Eyeconic = 0
+)
+
+
+
+/*------------------Benefits Pref MP------------------*/
+SELECT
+COUNT(primary_individual_identifier)
+
+FROM VC_EC_Entry v
+
+WHERE 
+EXISTS 
+(SELECT email_address 
+FROM [VC_Subscription_Form_Page_Prod] pref
+WHERE  v.email_address = pref.email_address
+AND 
+pref.Eyeconic_Optin = 0
+)
+
+
+/*------------------Global Opt Out------------------*/
+SELECT
+COUNT(primary_individual_identifier)
+, cd.C_Client_ID1
+
+FROM VC_EC_Entry v
+JOIN Data_Consumer_Load cd
+ON v.email_address = cd.C_EmailAddress 
+
+WHERE 
+EXISTS 
+(SELECT client_id 
+FROM [Ex_VC_Global_Client_Opt_Out] o
+WHERE  cd.C_Client_ID1 = o.client_id )
+
+GROUP BY
+cd.C_Client_ID1
