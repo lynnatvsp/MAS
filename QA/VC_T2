@@ -54,7 +54,6 @@ cd.C_Do_Not_Contact1
 
 
 
-
 /*------------------Benefits Pref SF------------------*/
 SELECT
 COUNT(primary_individual_identifier)
@@ -67,8 +66,9 @@ EXISTS
 FROM [CDP_GR_Individual_Preferences] pref
 WHERE  v.email_address = pref.email_address
 AND 
-pref.Opt_In_VC_Envision = 0
+pref.Opt_In_VC_Benefits = 0
 )
+
 
 
 /*------------------Benefits Pref MP------------------*/
@@ -83,7 +83,7 @@ EXISTS
 FROM [VC_Subscription_Form_Page_Prod] pref
 WHERE  v.email_address = pref.email_address
 AND 
-pref.Envision_Optin = 0
+pref.Benefits_Optin = 0
 )
 
 
