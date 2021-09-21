@@ -1,0 +1,168 @@
+SELECT
+v2.primary_individual_identifier
+,v2.email_address
+,v2.date_of_birth
+,v2.client_id
+,v2.strategic_alliance_code
+,v2.class_id
+,v2.zip
+,v2.state
+,v2.email_source
+,v2.first_name
+,v2.last_name
+,v2.member_coverage_code
+,v2.email_type
+,v2.do_not_contact_member_indicator
+,v2.Opt_In_VC_Benefits
+, v2.Benefits_Optin 
+,v2.CreatedInDE
+,v2.Client_Renewal_Month
+,v2.Original_Effective_Date
+
+FROM 
+   (SELECT
+	pref.primary_individual_identifier
+	, cd.C_EmailAddress as email_address
+	, cd.C_Email_Source_Code1 as email_source
+	, cd.C_Do_Not_Contact1 as do_not_contact_member_indicator
+	, cd.C_Client_Renewal_Month1 as Client_Renewal_Month
+	, cd.C_Strategic_Alliance_Code1 as strategic_alliance_code
+	, cd.C_State_Prov as State
+	, cd.C_FirstName as first_name
+	, cd.C_LastName as last_name
+	, cd.C_Date_of_Birth1 as date_of_birth
+	, cd.C_Client_ID1 as client_id
+	, cd.C_Client_Class_ID1 as class_id
+	, cd.C_Zip_or_Postal_Code_Extension as zip
+	, cd.C_Member_Coverage_Code1 as member_coverage_code
+	, cd.C_Email_Type_Code1 as email_type
+	, pref.Opt_In_VC_Benefits
+	, mp.Benefits_Optin 
+	, cd.CreatedInDE
+	, cd.C_Original_Effective_Date1 as Original_Effective_Date
+   	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
+	
+	
+	FROM Data_Consumer_Load cd /*-----Back to CD meow*/
+	INNER JOIN [CDP_GR_Individual_Preferences] pref
+	ON cd.C_EmailAddress  = pref.email_address
+	INNER JOIN [Data_Consumer_ActiveEmails] a /*-----and Active*/
+	on  cd.C_EmailAddress = a.EmailAddress
+	INNER JOIN [Eloqua_PrimaryEmails] p /*-----and Primary*/
+	on  cd.C_EmailAddress = p.EmailAddress
+	LEFT JOIN [VC_Subscription_Form_Page_Prod] mp /*-----Member Portal Subs*/
+	ON cd.C_EmailAddress = mp.[Email_Address]
+	
+	
+	WHERE
+	( /*-----Only pull in M P S R, NOT DNC M*/
+		(cd.C_Strategic_Alliance_Code1 IS NULL
+		AND
+			(
+			cd.C_Email_Source_Code1 = 'P'
+			OR
+				(cd.C_Email_Source_Code1 = 'S'
+				AND
+				cd.C_Do_Not_Contact1 = '0')
+			OR
+				(cd.C_Email_Source_Code1 = 'R'
+				AND
+				cd.C_Do_Not_Contact1 = '0')
+			OR
+				(cd.C_Email_Source_Code1 = 'M'
+				AND
+				cd.C_Do_Not_Contact1 = '0')
+			)
+		AND NOT
+		cd.C_Client_ID1 = '112023569'
+		AND NOT
+			(cd.C_Client_ID1 = '12101422'
+			AND
+			C_Client_Class_ID1 = '0014')
+		AND NOT
+		cd.C_Client_ID1 = '30079492'
+		AND NOT
+		cd.C_Client_ID1 = '12130213'
+		AND NOT
+		cd.C_Client_ID1 = '12006223'
+		)
+	)
+	
+	AND
+	(
+		/*-----Client Renewal Month = current month*/
+		(CASE  
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-01-%') THEN 01
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-02-%') THEN 02
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-03-%') THEN 03
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-04-%') THEN 04
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-05-%') THEN 05
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-06-%') THEN 06
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-07-%') THEN 07
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-08-%') THEN 08
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-09-%') THEN 09
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-10-%') THEN 10
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-11-%') THEN 11
+			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-12-%') THEN 12
+			ELSE cd.C_Client_Renewal_Month1
+			END = MONTH(getdate())
+		)
+		OR
+		    (C_Original_Effective_Date1 >= DATEADD(DAY, -40, GETDATE())
+		    AND
+		    C_Original_Effective_Date1 < GETDATE()
+		    )
+	)
+	
+	AND
+	( /*-----Is opted in to Benefits in SF*/
+		pref.Opt_In_VC_Benefits = 1
+	)
+	
+	AND 
+	( /*-----MP Opt Out*/
+	NOT EXISTS 
+	(SELECT mp.Email_Address
+	FROM [VC_Subscription_Form_Page_Prod] mp
+	WHERE  cd.C_EmailAddress = mp.Email_Address
+	AND Benefits_Optin = 0)
+	)
+	
+	AND 
+	( /*-----Future Terming Client*/
+	NOT EXISTS 
+	(SELECT term.client_id 
+	FROM [Ex_VC_Future_Terming_Clients] term
+	WHERE  cd.C_Client_ID1  = term.client_id)
+	)
+	
+	AND  
+	( /*-----Global Client Opt Out*/
+	NOT EXISTS 
+	(SELECT gopt.client_id 
+	FROM [Ex_VC_Global_Client_Opt_Out] gopt
+	WHERE  cd.C_Client_ID1  = gopt.client_id)
+	)
+	
+	AND  
+	( /*-----Not sent in last 45 Days*/
+	NOT EXISTS 
+	(SELECT l.email_address 
+	FROM [VC_T1_SFMCSend_Last45Days] l
+	WHERE  cd.C_EmailAddress  = l.email_address)
+	)
+   ) v2
+   
+WHERE
+v2.RowNum = 1
+
+AND
+NOT EXISTS 
+(SELECT SubscriberKey 
+FROM [_bounce] b
+WHERE  v2.primary_individual_identifier = b.SubscriberKey
+AND 
+    (b.BOUNCECATEGORY = 'Hard bounce'
+    OR b.BOUNCECATEGORY = 'Block bounce'
+    )
+)
