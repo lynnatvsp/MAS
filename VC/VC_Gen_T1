@@ -106,6 +106,8 @@ FROM
 			WHEN (cd.C_Client_Renewal_Month1 LIKE '%-12-%') THEN 12
 			ELSE cd.C_Client_Renewal_Month1
 			END = MONTH(getdate())
+			AND
+			C_Original_Effective_Date1 < GETDATE()
 		)
 		OR
 		    (C_Original_Effective_Date1 >= DATEADD(DAY, -40, GETDATE())
