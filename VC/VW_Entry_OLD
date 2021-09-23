@@ -1,0 +1,52 @@
+SELECT
+x.Notes
+, x.AB_Test
+, x.date_of_birth
+, x.client_id
+, x.strategic_alliance_code
+, x.oon_indicator
+, x.vision_savings_pass_indicator
+, x.Purchased_contacts
+, x.class_id
+, x.zip
+, x.email_tag
+, x.parent
+, x.state
+, x.membership_status
+, x.email_address
+, x.primary_individual_identifier
+FROM 
+               (SELECT
+               v.Notes
+				, v.AB_Test
+				, v.date_of_birth
+				, v.client_id
+				, v.strategic_alliance_code
+				, v.oon_indicator
+				, v.vision_savings_pass_indicator
+				, v.Purchased_contacts
+				, v.class_id
+				, v.zip
+				, v.email_tag
+				, v.parent
+				, v.state
+				, v.membership_status
+				, v.email_address
+				, v.primary_individual_identifier
+               , ROW_NUMBER() OVER(PARTITION BY v.email_address ORDER BY v.[primary_individual_identifier] ASC) AS RowNum
+               FROM VW_Staging v
+               INNER JOIN CDP_GR_Individual_Preferences p
+               ON v.email_address = p.email_address
+               ) x
+WHERE
+x.RowNum = 1
+AND
+NOT EXISTS 
+(SELECT SubscriberKey 
+FROM [_bounce] b
+WHERE  x.primary_individual_identifier = b.SubscriberKey
+AND 
+    (b.BOUNCECATEGORY = 'Hard bounce'
+    OR b.BOUNCECATEGORY = 'Block bounce'
+    )
+)
