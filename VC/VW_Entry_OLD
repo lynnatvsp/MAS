@@ -15,28 +15,59 @@ x.Notes
 , x.membership_status
 , x.email_address
 , x.primary_individual_identifier
+, x.C_Email_Source_Code1 
+, x.C_Do_Not_Contact1
+, x.C_Vision_Savings_Pass1 
+, x.C_Strategic_Alliance_Code1
+, x.SFMCClaimEligible
+, x.SFMCClaimOON
+, x.Opt_In_VC_Retail
+, x.Retail_Optin
+, x.last_claim_frame_provider_categorization
+, x.last_claim_exam_provider_categorization
+, x.last_claim_lens_provider_categorization
+		
 FROM 
                (SELECT
                v.Notes
-				, v.AB_Test
-				, v.date_of_birth
-				, v.client_id
-				, v.strategic_alliance_code
-				, v.oon_indicator
-				, v.vision_savings_pass_indicator
-				, v.Purchased_contacts
-				, v.class_id
-				, v.zip
-				, v.email_tag
-				, v.parent
-				, v.state
-				, v.membership_status
-				, v.email_address
-				, v.primary_individual_identifier
+		, v.AB_Test
+		, v.date_of_birth
+		, v.client_id
+		, v.strategic_alliance_code
+		, v.oon_indicator
+		, v.vision_savings_pass_indicator
+		, v.Purchased_contacts
+		, v.class_id
+		, v.zip
+		, v.email_tag
+		, v.parent
+		, v.state
+		, v.membership_status
+		, v.email_address
+		, v.primary_individual_identifier
+		, cd.C_Email_Source_Code1 
+		, cd.C_Do_Not_Contact1
+		, cd.C_Vision_Savings_Pass1 
+		, cd.C_Strategic_Alliance_Code1
+		, cc.SFMCClaimEligible
+		, cc.SFMCClaimOON
+		, p.Opt_In_VC_Retail
+		, mp.Retail_Optin
+		, cdp.last_claim_frame_provider_categorization
+		, cdp.last_claim_exam_provider_categorization
+		, cdp.last_claim_lens_provider_categorization
                , ROW_NUMBER() OVER(PARTITION BY v.email_address ORDER BY v.[primary_individual_identifier] ASC) AS RowNum
                FROM VW_Staging v
-               INNER JOIN CDP_GR_Individual_Preferences p
-               ON v.email_address = p.email_address
+		LEFT JOIN Data_Consumer_Load cd
+		ON v.email_address = cd.C_EmailAddress
+		LEFT JOIN Eloqua_Feed_Claim_History cc
+		ON v.email_address = cc.[Email Address]
+		LEFT JOIN CDP_GR_Individual_Preferences p
+		ON v.primary_individual_identifier = p.primary_individual_identifier
+		LEFT JOIN VC_Subscription_Form_Page_Prod mp
+		ON v.email_address = mp.Email_Address
+		LEFT JOIN CDP_GR_Individual cdp
+		ON v.email_address = cdp.Email_Address
                ) x
 WHERE
 x.RowNum = 1
