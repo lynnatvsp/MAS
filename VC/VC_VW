@@ -66,6 +66,11 @@ FROM
 	vwz.Zip IS NOT NULL
 	
 	AND
+		(cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
+		OR
+		cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
+		
+	AND
 	cd.C_Email_Source_Code1 = 'P'
 	
 	AND
@@ -95,7 +100,8 @@ FROM
 	)
 	
 	AND /*Is Eligible*/
-	ch.SFMCClaimEligible = '' OR ch.SFMCClaimEligible IS NULL
+		(ch.SFMCClaimEligible = '' 
+		OR ch.SFMCClaimEligible IS NULL)
 	
 	AND /*SA*/
 	cd.C_Strategic_Alliance_Code1 IS NULL
