@@ -27,6 +27,7 @@ pref.Opt_In_VC_Eyeconic = 1
 AND
 cd.C_Email_Source_Code1 = 'P'
 
+AND
 ( /*---------Eyeconic Weekly Opt In*/
 NOT EXISTS 
 (SELECT Email_Address 
@@ -44,11 +45,6 @@ LEN(cd.[C_EmailAddress])) = com.domain)
 )
 
 AND
-( /*---------DNC*/
-cd.C_Do_Not_Contact1 = 0
-)
-
-AND
 ( /*---------Global Client Opt Out*/
 NOT EXISTS  
 (SELECT client_id 
@@ -57,10 +53,10 @@ WHERE  cd.C_Client_ID1 = gopt.client_id)
 )
 
 AND
-( /*---------Strategic Alliance*/
-cd.C_Strategic_Alliance_Code1 NULL
-OR cd.C_Strategic_Alliance_Code1 != ''
-)
+    ( /*---------Strategic Alliance*/
+    cd.C_Strategic_Alliance_Code1 IS NULL
+    OR cd.C_Strategic_Alliance_Code1 != ''
+    )
 
 AND
 ( /*---------Opt Out Eyeconic SF*/
@@ -80,7 +76,6 @@ WHERE  cd.C_EmailAddress = mp.Email_Address
 AND Eyeconic_Optin = 0)
 )
 
-AND
-( /*---------Start Date in Future */
+AND /*---------Start Date in Future */
 C_Member_Coverage_Start_Date1 < GETDATE()
-)
+
