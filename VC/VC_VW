@@ -1,104 +1,164 @@
 SELECT
-cd.C_EmailAddress as EmailAddress
+x.email_address
+, x.primary_individual_identifier
+, x.date_of_birth
+, x.client_id
+, x.strategic_alliance_code
+, x.vision_savings_pass_indicator
+, x.class_id
+, x.zip
+, x.state
+, x.C_Email_Source_Code1 
+, x.C_Do_Not_Contact1
+, x.C_Vision_Savings_Pass1 
+, x.C_Strategic_Alliance_Code1
+, x.SFMCClaimEligible
+, x.SFMCClaimOON
+, x.Opt_In_VC_Retail
+, x.Retail_Optin
+, x.last_claim_frame_provider_categorization
+, x.last_claim_exam_provider_categorization
+, x.last_claim_lens_provider_categorization
 
-FROM [Data_Consumer_Load] cd
-INNER JOIN [Data_Consumer_ActiveEmails] a
-on  cd.C_EmailAddress = a.EmailAddress
-INNER JOIN [Eloqua_PrimaryEmails] p
-on  cd.C_EmailAddress = p.EmailAddress
-INNER JOIN [CDP_GR_Individual_Preferences] pref
-ON cd.C_EmailAddress = pref.email_address
-LEFT JOIN [Eloqua_Feed_Claim_History] ch
-on  cd.C_EmailAddress = ch.[Email Address]
-LEFT JOIN [Eloqua_Feed_Claim] cc
-on  cd.C_EmailAddress = cc.[Subscriber Email]
-LEFT JOIN VW_Zips vwz
-ON vwz.Zip = cd.C_Zip_Postal
-LEFT JOIN [CDP_GR_Individual] cdp
-ON cd.C_EmailAddress = cdp.email_address
+FROM 
+	(SELECT
+	cd.C_EmailAddress as email_address
+	, pref.primary_individual_identifier
+	, cd.C_Date_of_Birth1 as date_of_birth
+	, cd.C_Client_ID1 as client_id
+	, cd.C_Strategic_Alliance_Code1 as strategic_alliance_code
+	, cd.C_Vision_Savings_Pass1 as vision_savings_pass_indicator
+	, cd.C_Client_Class_ID1 as class_id
+	, cd.C_Zip_Postal as zip
+	, cd.C_State_Prov as state
+	, cd.C_Email_Source_Code1 
+	, cd.C_Do_Not_Contact1
+	, cd.C_Vision_Savings_Pass1 
+	, cd.C_Strategic_Alliance_Code1
+	, ch.SFMCClaimEligible
+	, ch.SFMCClaimOON
+	, pref.Opt_In_VC_Retail
+	, mp.Retail_Optin
+	, cdp.last_claim_frame_provider_categorization
+	, cdp.last_claim_exam_provider_categorization
+	, cdp.last_claim_lens_provider_categorization
+	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.[primary_individual_identifier] ASC) AS RowNum
+	
+	FROM [Data_Consumer_Load] cd
+	INNER JOIN [Data_Consumer_ActiveEmails] a
+	on  cd.C_EmailAddress = a.EmailAddress
+	INNER JOIN [Eloqua_PrimaryEmails] p
+	on  cd.C_EmailAddress = p.EmailAddress
+	INNER JOIN [CDP_GR_Individual_Preferences] pref
+	ON cd.C_EmailAddress = pref.email_address
+	LEFT JOIN [Eloqua_Feed_Claim_History] ch
+	on  cd.C_EmailAddress = ch.[Email Address]
+	LEFT JOIN [Eloqua_Feed_Claim] cc
+	on  cd.C_EmailAddress = cc.[Subscriber Email]
+	LEFT JOIN VW_Zips vwz
+	ON vwz.Zip = cd.C_Zip_Postal
+	LEFT JOIN [CDP_GR_Individual] cdp
+	ON cd.C_EmailAddress = cdp.email_address
+	LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
+	ON cd.C_EmailAddress = mp.[Email_Address]
+	
+	WHERE
+	vwz.Zip IS NOT NULL
+	
+	AND
+	cd.C_Email_Source_Code1 = 'P'
+	
+	AND
+	pref.Opt_In_VC_Retail = '1'
+	
+	AND
+	( /*Is OON*/
+	  (ch.SFMCClaimRelationship = 'Member'
+	  AND
+	  ch.SFMCClaimOON = 'Y')
+	
+	  OR /*Is NOC*/
+	  ch.[Email Address] IS NULL
+	  
+	  OR /*Is INN*/
+	  (ch.SFMCClaimOON = '' OR ch.SFMCClaimOON IS NULL
+		AND NOT
+		(cdp.last_claim_frame_provider_categorization = 'Gold'
+		OR cdp.last_claim_frame_provider_categorization = 'Platinum'
+		OR cdp.last_claim_lens_provider_categorization = 'Gold'
+		OR cdp.last_claim_lens_provider_categorization = 'Platinum'
+		OR cdp.last_claim_contact_lens_provider_categorization = 'Gold'
+		OR cdp.last_claim_contact_lens_provider_categorization = 'Platinum'
+		OR cdp.last_claim_exam_provider_categorization = 'Gold'
+		OR cdp.last_claim_exam_provider_categorization = 'Platinum')
+	  )
+	)
+	
+	AND /*Is Eligible*/
+	ch.SFMCClaimEligible = '' OR ch.SFMCClaimEligible IS NULL
+	
+	AND /*SA*/
+	cd.C_Strategic_Alliance_Code1 IS NULL
+	
+	AND /*Savings Pass*/
+	cd.C_Vision_Savings_Pass1 = '0'
+	
+	AND NOT  /*-----------------Global Opt Out------------------*/
+	(
+	EXISTS 
+	(SELECT client_id 
+	FROM [Ex_VC_Global_Client_Opt_Out] gopt
+	WHERE  cd.C_Client_ID1 = gopt.client_id)
+	)
+	
+	AND NOT  /*-----------------Strategic Alliances except PE------------------*/
+	(
+	EXISTS 
+	(SELECT ClientID 
+	FROM [Ex_VC_Not_Eligible20] ne
+	WHERE  cd.C_Client_ID1 = ne.ClientID)
+	)
+	
+	AND NOT  /*-----------------Claimed this year------------------*/
+	(
+	EXISTS 
+	(SELECT cc.[Subscriber Email] 
+	FROM [Eloqua_Feed_Claim] cc
+	WHERE  cd.C_EmailAddress = cc.[Subscriber Email])
+	)
+	
+	AND NOT  /*-----------------Opt Out SF------------------*/
+	EXISTS 
+	(SELECT email_address 
+	FROM [CDP_GR_Individual_Preferences] pref
+	WHERE  cd.C_EmailAddress = pref.email_address
+	AND pref.Opt_In_VC_Retail = 0
+	)
+	
+	AND NOT /*-----------------Opt Out MP-----------------*/
+	EXISTS 
+	(SELECT mp.Email_Address
+	FROM [VC_Subscription_Form_Page_Prod] mp
+	WHERE  cd.C_EmailAddress = mp.Email_Address
+	AND Retail_Optin = 0)
+	
+	AND NOT /*-----------------VW Website Opt Outs------------------*/
+	EXISTS 
+	(SELECT email_address 
+	FROM [Ex_VW_Website_Optouts] vw
+	WHERE  cd.C_EmailAddress = vw.Email_Address )
 
+	) x
 WHERE
-vwz.Zip IS NOT NULL
+x.RowNum = 1
 
 AND
-cd.C_Email_Source_Code1 = 'P'
-
-AND
-pref.Opt_In_VC_Retail = '1'
-
-AND
-( /*Is OON*/
-  (ch.SFMCClaimRelationship = 'Member'
-  AND
-  ch.SFMCClaimOON = 'Y')
-
-  OR /*Is NOC*/
-  ch.[Email Address] IS NULL
-  
-  OR /*Is INN*/
-  (ch.SFMCClaimOON = '' OR ch.SFMCClaimOON IS NULL
-    AND NOT
-    (cdp.last_claim_frame_provider_categorization = 'Gold'
-    OR cdp.last_claim_frame_provider_categorization = 'Platinum'
-    OR cdp.last_claim_lens_provider_categorization = 'Gold'
-    OR cdp.last_claim_lens_provider_categorization = 'Platinum'
-    OR cdp.last_claim_contact_lens_provider_categorization = 'Gold'
-    OR cdp.last_claim_contact_lens_provider_categorization = 'Platinum'
-    OR cdp.last_claim_exam_provider_categorization = 'Gold'
-    OR cdp.last_claim_exam_provider_categorization = 'Platinum')
-  )
+NOT EXISTS 
+(SELECT SubscriberKey 
+FROM [_bounce] b
+WHERE  x.primary_individual_identifier = b.SubscriberKey
+AND 
+    (b.BOUNCECATEGORY = 'Hard bounce'
+    OR b.BOUNCECATEGORY = 'Block bounce'
+    )
 )
-
-AND /*Is Eligible*/
-ch.SFMCClaimEligible = '' OR ch.SFMCClaimEligible IS NULL
-
-AND /*SA*/
-cd.C_Strategic_Alliance_Code1 IS NULL
-
-AND /*Savings Pass*/
-cd.C_Vision_Savings_Pass1 = '0'
-
-AND NOT  /*-----------------Global Opt Out------------------*/
-(
-EXISTS 
-(SELECT client_id 
-FROM [Ex_VC_Global_Client_Opt_Out] gopt
-WHERE  cd.C_Client_ID1 = gopt.client_id)
-)
-
-AND NOT  /*-----------------Strategic Alliances except PE------------------*/
-(
-EXISTS 
-(SELECT ClientID 
-FROM [Ex_VC_Not_Eligible20] ne
-WHERE  cd.C_Client_ID1 = ne.ClientID)
-)
-
-AND NOT  /*-----------------Claimed this year------------------*/
-(
-EXISTS 
-(SELECT cc.[Subscriber Email] 
-FROM [Eloqua_Feed_Claim] cc
-WHERE  cd.C_EmailAddress = cc.[Subscriber Email])
-)
-
-AND NOT  /*-----------------Opt Out SF------------------*/
-EXISTS 
-(SELECT email_address 
-FROM [CDP_GR_Individual_Preferences] pref
-WHERE  cd.C_EmailAddress = pref.email_address
-AND pref.Opt_In_VC_Retail = 0
-)
-
-AND NOT /*-----------------Opt Out MP-----------------*/
-EXISTS 
-(SELECT mp.Email_Address
-FROM [VC_Subscription_Form_Page_Prod] mp
-WHERE  cd.C_EmailAddress = mp.Email_Address
-AND Retail_Optin = 0)
-
-AND NOT /*-----------------VW Website Opt Outs------------------*/
-EXISTS 
-(SELECT email_address 
-FROM [Ex_VW_Website_Optouts] vw
-WHERE  cd.C_EmailAddress = vw.Email_Address )
