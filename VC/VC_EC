@@ -1,81 +1,119 @@
 SELECT
-cd.C_EmailAddress AS EmailAddress
-FROM [Data_Consumer_Load] cd /*-----In Consumer Data*/
-INNER JOIN [Data_Consumer_ActiveEmails] a /*-----and Active*/
-on cd.C_EmailAddress = a.EmailAddress
-INNER JOIN [Eloqua_PrimaryEmails] p /*-----and Primary*/
-ON cd.C_EmailAddress = p.EmailAddress
-INNER JOIN [CDP_GR_Individual_Preferences] pref /*-----and Primary*/
-on  cd.C_EmailAddress = pref.email_address 
-LEFT JOIN [VC_Subscription_Form_Page_Prod] mp /*-----Member Portal Subs*/
-ON cd.C_EmailAddress = mp.[Email_Address]
- 
+x.primary_individual_identifier
+, x.email_address
+, x.client_id
+, x.C_Strategic_Business_Unit1
+, x.C_Email_Source_Code1
+, x.C_Do_Not_Contact1
+, x.C_Strategic_Alliance_Code1
+, x.C_Member_Coverage_Start_Date1
+, x.Opt_In_VC_Eyeconic
+, x.Eyeconic_Optin
+FROM 
+               (SELECT
+				pref.primary_individual_identifier
+                , cd.C_EmailAddress as email_address
+                , cd.C_Client_ID1 as client_id
+				, cd.C_Strategic_Business_Unit1
+				, cd.C_Email_Source_Code1
+				, cd.C_Do_Not_Contact1
+				, cd.C_Strategic_Alliance_Code1
+				, cd.C_Member_Coverage_Start_Date1
+				, pref.Opt_In_VC_Eyeconic
+				, mp.Eyeconic_Optin
+                , ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
+                
+				FROM [Data_Consumer_Load] cd /*-----In Consumer Data*/
+				INNER JOIN [Data_Consumer_ActiveEmails] a /*-----and Active*/
+				on cd.C_EmailAddress = a.EmailAddress
+				INNER JOIN [Eloqua_PrimaryEmails] p /*-----and Primary*/
+				ON cd.C_EmailAddress = p.EmailAddress
+				INNER JOIN [CDP_GR_Individual_Preferences] pref /*-----and Primary*/
+				on  cd.C_EmailAddress = pref.email_address 
+				LEFT JOIN [VC_Subscription_Form_Page_Prod] mp /*-----Member Portal Subs*/
+				ON cd.C_EmailAddress = mp.[Email_Address]
+				 
+				WHERE
+				NOT EXISTS
+				(SELECT client_id
+				FROM [Ex_VC_NotEyeconicable] ec
+				WHERE  cd.C_Client_ID1  = ec.client_id)
+				
+				AND
+				  (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
+				  OR
+				  cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
+				
+				AND
+				pref.Opt_In_VC_Eyeconic = 1
+				
+				AND
+				cd.C_Email_Source_Code1 = 'P'
+				
+				AND
+				( /*---------Eyeconic Weekly Opt In*/
+				NOT EXISTS 
+				(SELECT Email_Address 
+				FROM [Ex_VC_EC_Weekly_OptIns] week
+				WHERE  cd.C_EmailAddress = week.Email_Address)
+				)
+				
+				AND
+				( /*---------Competitors*/
+				NOT EXISTS  
+				(SELECT domain 
+				FROM [Ex_VC_EC_Competitors] com
+				WHERE SUBSTRING (cd.[C_EmailAddress], CHARINDEX( '@', cd.[C_EmailAddress]) + 1,
+				LEN(cd.[C_EmailAddress])) = com.domain)
+				)
+				
+				AND
+				( /*---------Global Client Opt Out*/
+				NOT EXISTS  
+				(SELECT client_id 
+				FROM [Ex_VC_Global_Client_Opt_Out] gopt
+				WHERE  cd.C_Client_ID1 = gopt.client_id)
+				)
+				
+				AND
+					( /*---------Strategic Alliance*/
+					cd.C_Strategic_Alliance_Code1 IS NULL
+					OR cd.C_Strategic_Alliance_Code1 != ''
+					)
+				
+				AND
+				( /*---------Opt Out Eyeconic SF*/
+				NOT EXISTS  
+				(SELECT email_address 
+				FROM [CDP_GR_Individual_Preferences] pref
+				WHERE  cd.C_EmailAddress = pref.email_address
+				AND pref.Opt_In_VC_Eyeconic = 0)
+				)
+				
+				AND 
+				( /*-----Opt Out Eyeconic MP*/
+				NOT EXISTS 
+				(SELECT mp.Email_Address
+				FROM [VC_Subscription_Form_Page_Prod] mp
+				WHERE  cd.C_EmailAddress = mp.Email_Address
+				AND Eyeconic_Optin = 0)
+				)
+				
+				AND /*---------Start Date in Future */
+				C_Member_Coverage_Start_Date1 < GETDATE()
+				
+				
+               ) x
 WHERE
-NOT EXISTS
-(SELECT client_id
-FROM [Ex_VC_NotEyeconicable] ec
-WHERE  cd.C_Client_ID1  = ec.client_id)
+x.RowNum = 1
 
 AND
-  (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
-  OR
-  cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
-
-AND
-pref.Opt_In_VC_Eyeconic = 1
-
-AND
-cd.C_Email_Source_Code1 = 'P'
-
-AND
-( /*---------Eyeconic Weekly Opt In*/
 NOT EXISTS 
-(SELECT Email_Address 
-FROM [Ex_VC_EC_Weekly_OptIns] week
-WHERE  cd.C_EmailAddress = week.Email_Address)
-)
-
-AND
-( /*---------Competitors*/
-NOT EXISTS  
-(SELECT domain 
-FROM [Ex_VC_EC_Competitors] com
-WHERE SUBSTRING (cd.[C_EmailAddress], CHARINDEX( '@', cd.[C_EmailAddress]) + 1,
-LEN(cd.[C_EmailAddress])) = com.domain)
-)
-
-AND
-( /*---------Global Client Opt Out*/
-NOT EXISTS  
-(SELECT client_id 
-FROM [Ex_VC_Global_Client_Opt_Out] gopt
-WHERE  cd.C_Client_ID1 = gopt.client_id)
-)
-
-AND
-    ( /*---------Strategic Alliance*/
-    cd.C_Strategic_Alliance_Code1 IS NULL
-    OR cd.C_Strategic_Alliance_Code1 != ''
-    )
-
-AND
-( /*---------Opt Out Eyeconic SF*/
-NOT EXISTS  
-(SELECT email_address 
-FROM [CDP_GR_Individual_Preferences] pref
-WHERE  cd.C_EmailAddress = pref.email_address
-AND pref.Opt_In_VC_Eyeconic = 0)
-)
-
+(SELECT SubscriberKey 
+FROM [_bounce] b
+WHERE  x.primary_individual_identifier = b.SubscriberKey
 AND 
-( /*-----Opt Out Eyeconic MP*/
-NOT EXISTS 
-(SELECT mp.Email_Address
-FROM [VC_Subscription_Form_Page_Prod] mp
-WHERE  cd.C_EmailAddress = mp.Email_Address
-AND Eyeconic_Optin = 0)
+    (b.BOUNCECATEGORY = 'Hard bounce'
+    OR b.BOUNCECATEGORY = 'Block bounce'
+    )
 )
-
-AND /*---------Start Date in Future */
-C_Member_Coverage_Start_Date1 < GETDATE()
-
