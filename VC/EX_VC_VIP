@@ -1,0 +1,32 @@
+SELECT
+p.primary_individual_identifier 
+, cd.C_EmailAddress 
+, cd.C_Address1 
+, cd.C_State_Prov 
+, cd.C_City 
+, cd.C_Zip_Postal 
+, cdp.email_address 
+, cdp.primary_address_street 
+, cdp.primary_address_state 
+, cdp.primary_address_city 
+, cdp.primary_address_zip
+
+FROM Data_Consumer_Load cd
+LEFT JOIN CDP_GR_Individual cdp
+ON cd.C_EmailAddress = cdp.email_address 
+LEFT JOIN CDP_GR_Individual_Preferences p
+ON cd.C_EmailAddress = p.email_address
+LEFT JOIN Ex_VC_VIP vip
+ON cd.C_Address1 = vip.mailing_address
+
+WHERE
+(cd.C_Address1 = vip.mailing_address
+AND cd.C_State_Prov = vip.state
+AND cd.C_City = vip.city
+AND cd.C_Zip_Postal = vip.zip)
+
+OR
+(cdp.primary_address_street = vip.mailing_address
+AND cdp.primary_address_state = vip.state
+AND cdp.primary_address_city = vip.city
+AND cdp.primary_address_zip = vip.zip)
