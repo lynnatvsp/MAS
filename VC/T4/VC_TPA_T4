@@ -1,0 +1,191 @@
+SELECT
+v2.primary_individual_identifier
+, v2.email_address
+, v2.date_of_birth
+, v2.client_id
+, v2.strategic_alliance_code
+, v2.class_id
+, v2.zip
+, v2.state
+, v2.email_source
+, v2.open_enrollment_start_date
+, v2.sbu
+, v2.client_renewal_month
+, v2.open_enrollment_end_date
+, v2.do_not_contact
+, v2.member_coverage_start_date
+, v2.member_coverage_end_date
+, v2.vision_savings_pass
+, v2.opt_in_benefits
+, v2.FirstName
+, v2.LastName
+, v2.City
+, v2.State_Country_Province
+, v2.ZipCode
+, v2.YearOfBirth
+, v2.MonthOfBirth
+, v2.DayOfBirth
+
+FROM 
+   (SELECT
+	pref.primary_individual_identifier
+	, cd.C_EmailAddress as email_address
+	, cd.C_Date_of_Birth1 as date_of_birth
+	, cd.C_Client_ID1 as client_id
+	, cd.C_Strategic_Alliance_Code1 as strategic_alliance_code
+	, cd.C_Client_Class_ID1 as class_id
+	, cd.C_Zip_Postal as zip
+	, cd.C_State_Prov as state
+	, cd.C_Email_Source_Code1 as email_source
+	, cd.C_Open_Enrollment_Start_Date1 as open_enrollment_start_date
+	, cd.C_Strategic_Business_Unit1 as sbu
+	, cd.C_Client_Renewal_Month1 as client_renewal_month
+	, cd.C_Open_Enrollment_End_Date1 as open_enrollment_end_date
+	, cd.C_Do_Not_Contact1 as do_not_contact
+	, cd.C_Member_Coverage_Start_Date1 as member_coverage_start_date
+	, cd.C_Member_Coverage_End_Date1 as member_coverage_end_date
+	, cd.C_Vision_Savings_Pass1 as vision_savings_pass
+	, pref.Opt_In_VC_Benefits as opt_in_benefits
+	, cd.C_FirstName as FirstName
+	, cd.C_LastName as LastName
+	, cd.C_City as City
+	, cd.C_State_Prov as State_Country_Province
+	, cd.C_Zip_Postal as ZipCode
+	, datepart(year,cd.C_Date_of_Birth1) as YearOfBirth
+	, datepart(month,cd.C_Date_of_Birth1) as MonthOfBirth
+	, datepart(day,cd.C_Date_of_Birth1) as DayOfBirth
+	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
+
+
+
+	FROM [Data_Consumer_Load] cd /*-----In Consumer Data*/
+	INNER JOIN [Data_Consumer_ActiveEmails] a /*-----and Active*/
+	on cd.C_EmailAddress = a.EmailAddress
+	INNER JOIN [Eloqua_PrimaryEmails] p /*-----and Primary*/
+	on cd.C_EmailAddress = p.EmailAddress
+	INNER JOIN [CDP_GR_Individual_Preferences] pref
+	ON cd.C_EmailAddress = pref.email_address
+
+	WHERE
+	(
+	cd.C_Email_Source_Code1 = 'M'
+	OR cd.C_Email_Source_Code1 = 'P'
+	OR cd.C_Email_Source_Code1 = 'R'
+	OR cd.C_Email_Source_Code1 = 'S'
+	)
+	AND
+	(
+		(
+		/*-----OE Month = Current Month AND OE Year not in future*/
+		datepart(month,cd.C_Open_Enrollment_Start_Date1) = MONTH(getdate())
+		/*datepart(month,cd.C_Open_Enrollment_Start_Date1) = 5*/
+		AND datepart(year,cd.C_Open_Enrollment_Start_Date1) !> YEAR(getdate())
+		)
+		OR
+		( /*-----OE Month = 9999 AND sbu = (CMI OR CMF) AND Client Renewal Month = Current Month+2*/
+		datepart(year,cd.C_Open_Enrollment_Start_Date1) = 9999
+		AND (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
+			OR cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
+		AND     CASE 
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-01-%' THEN '1'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-02-%' THEN '2'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-03-%' THEN '3'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-04-%' THEN '4'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-05-%' THEN '5'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-06-%' THEN '6'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-07-%' THEN '7'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-08-%' THEN '8'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-09-%' THEN '9'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-10-%' THEN '10'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-11-%' THEN '11'
+				WHEN cd.C_Client_Renewal_Month1 LIKE '%-12-%' THEN '12'
+				ELSE ''
+			  END = MONTH(getdate()) +2
+			  /*END = 7*/
+		)
+	)
+
+         AND /*-----TPA Clients*/
+         EXISTS
+         (SELECT client_id 
+         FROM [Ex_VC_TPA_Clients] tpa
+         WHERE cd.C_Client_ID1 = tpa.client_id)
+
+         AND /*-----Savings Pass*/
+         cd.C_Vision_Savings_Pass1 = '0'
+
+
+         AND NOT /*-----Global Client Opt Out*/
+         EXISTS 
+         (SELECT client_id 
+         FROM [Ex_VC_Global_Client_Opt_Out] gopt
+         WHERE cd.C_Client_ID1 = gopt.client_id)
+
+
+         AND NOT /*-----Future Terming Client*/
+         EXISTS 
+         (SELECT client_id 
+         FROM [Ex_VC_Future_Terming_Clients] term
+         WHERE cd.C_Client_ID1 = term.client_id)
+
+
+
+         AND NOT /*-----Opt Out Benefits SF*/
+         EXISTS 
+         (SELECT email_address 
+         FROM [CDP_GR_Individual_Preferences] pref
+         WHERE cd.C_EmailAddress = pref.email_address
+         AND pref.Opt_In_VC_Benefits = 0)
+
+
+         AND NOT /*-----Opt Out Benefits MP*/
+         EXISTS 
+         (SELECT email_address 
+         FROM [VC_Subscription_Form_Page_Prod] mp
+         WHERE cd.C_EmailAddress = mp.email_address
+         AND 
+         mp.Benefits_Optin = 0
+         )
+
+
+         AND NOT /*-----CSW Clients*/
+         EXISTS
+         (SELECT client_id 
+         FROM [Ex_VC_CSW_Clients] csw
+         WHERE cd.C_Client_ID1 = csw.client_id)
+
+
+         AND NOT /*-----TPA Clients*/
+         EXISTS
+         (SELECT client_id 
+         FROM [Ex_VC_TPA_Clients] tpa
+         WHERE cd.C_Client_ID1 = tpa.client_id)
+
+
+         AND NOT /*-----Packaged Clients*/
+         EXISTS 
+         (SELECT client_id 
+         FROM [Ex_VC_OE_Packaged_Clients] gopt
+         WHERE cd.C_Client_ID1 = gopt.client_id)
+
+
+         AND NOT /*-----OE Client Opt Out*/
+         EXISTS 
+         (SELECT client_id 
+         FROM [Ex_VC_OE_Client_Opt_Out] gopt
+         WHERE cd.C_Client_ID1 = gopt.client_id)
+         ) v2
+   
+WHERE
+v2.RowNum = 1
+
+AND
+NOT EXISTS 
+(SELECT SubscriberKey 
+FROM [_bounce] b
+WHERE  v2.primary_individual_identifier = b.SubscriberKey
+AND 
+    (b.BOUNCECATEGORY = 'Hard bounce'
+    OR b.BOUNCECATEGORY = 'Block bounce'
+    )
+)
