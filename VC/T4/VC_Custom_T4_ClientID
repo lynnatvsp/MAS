@@ -143,6 +143,13 @@ FROM
                (SELECT client_id 
                FROM [Ex_VC_OE_Packaged_Clients] gopt
                WHERE cd.C_Client_ID1 = gopt.client_id)
+
+
+               AND NOT /*-----BuyUp Clients*/
+               EXISTS 
+               (SELECT client_id 
+               FROM [Buy_Up_Picklist] bu
+               WHERE cd.C_Client_ID1 = bu.client_id)
                
                
                AND NOT /*-----OE Client Opt Out*/
