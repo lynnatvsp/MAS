@@ -1,0 +1,186 @@
+SELECT
+v2.email_address
+,v2.primary_individual_identifier
+,v2.state
+,v2.zip
+,v2.class_id
+,v2.vision_savings_pass_indicator
+,v2.strategic_alliance_code
+,v2.sbu
+,v2.client_id
+,v2.date_of_birth
+,v2.oon_indicator
+,v2.Purchased_contacts
+,v2.email_tag
+,v2.SFMCClaimMonth09
+,v2.SFMCClaimMonth11
+,v2.SFMCClaimOON
+,v2.SFMCClaimType
+, v2.Opt_In_VC_Benefits
+, v2.Benefits_Optin 
+
+FROM 
+   (SELECT
+	cd.C_EmailAddress as email_address
+	, pref.primary_individual_identifier
+	, cd.C_State_Prov as state
+	, cd.C_Zip_or_Postal_Code_Extension as zip
+	, cd.C_Client_Class_ID1 as class_id
+	, cd.C_Vision_Savings_Pass1 as vision_savings_pass_indicator
+	, cd.C_Strategic_Alliance_Code1 as strategic_alliance_code
+	, cd.C_Strategic_Business_Unit1 as sbu
+	, cd.C_Client_ID1 as client_id
+	, cd.C_Date_of_Birth1 as date_of_birth
+	, ch.SFMCClaimOON as oon_indicator
+	, ch.SFMCClaimContacts as Purchased_contacts
+	, CASE
+		WHEN (cc.[Exam Date of Service] IS NOT NULL AND ch.SFMCClaimType <> 'Exam Only') THEN 'EO'
+		WHEN ch.SFMCClaimOON = 'Y' AND
+			(ch.SFMCClaimMonth09 = 'Y'
+			OR ch.SFMCClaimMonth10 = 'Y'
+			OR ch.SFMCClaimMonth11 = 'Y') THEN 'OON'
+		WHEN (ch.SFMCClaimOON = '' OR ch.SFMCClaimOON IS NULL) AND
+			(ch.SFMCClaimMonth09 = 'Y'
+			OR ch.SFMCClaimMonth10 = 'Y'
+			OR ch.SFMCClaimMonth11 = 'Y')
+			THEN 'INN'
+		ELSE 'NOC'
+		END AS email_tag
+	, ch.SFMCClaimMonth09
+	, ch.SFMCClaimMonth11
+	, ch.SFMCClaimOON
+	, ch.SFMCClaimType 
+	, pref.Opt_In_VC_Benefits
+	, mp.Benefits_Optin 
+	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
+	
+	FROM [Data_Consumer_Load] cd
+	INNER JOIN [CDP_GR_Individual_Preferences] pref
+	ON cd.C_EmailAddress  = pref.email_address
+	INNER JOIN [Data_Consumer_ActiveEmails] a
+	ON cd.C_EmailAddress = a.EmailAddress
+	INNER JOIN [Eloqua_PrimaryEmails] p
+	ON cd.C_EmailAddress = p.EmailAddress
+	LEFT JOIN [Eloqua_Feed_Claim_History] ch
+	ON cd.C_EmailAddress = ch.[Email Address]
+	LEFT JOIN [Eloqua_Feed_Claim] cc
+	ON cd.C_EmailAddress = cc.[Subscriber Email]
+	LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
+	ON cd.C_EmailAddress = mp.[Email_Address]
+	
+	WHERE
+	
+	(
+		(ch.SFMCClaimMonth09 = 'Y'
+		OR ch.SFMCClaimMonth11 = 'Y')
+		
+		OR
+		(
+		ch.[Email Address] IS NULL
+		)
+	)
+	
+	
+	AND
+	(cd.C_Email_Source_Code1 = 'M'
+	OR cd.C_Email_Source_Code1 = 'P'
+	OR cd.C_Email_Source_Code1 = 'R'
+	OR cd.C_Email_Source_Code1 = 'S')
+	
+	
+	/*-------------Excludes--------------*/
+    AND
+    (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
+    OR
+    cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside'
+    )
+
+	AND
+	cd.C_Vision_Savings_Pass1 = 0
+	
+	
+	AND NOT
+		(cd.C_Client_ID1 = '12297317'
+		OR
+		cd.C_Client_ID1 = '12297318')
+		
+		
+	AND
+	cc.[Frame Date of Service] IS NULL
+	AND
+	cc.[Spectacle Lens Date of Service] IS NULL
+	AND
+	cc.[Contact Lens Date of Service] IS NULL
+	
+	
+	AND NOT
+	(
+	cd.C_Do_Not_Contact1 = 1
+	AND
+		(cd.C_Email_Source_Code1 = 'M'
+		OR
+		cd.C_Email_Source_Code1 = 'R'
+		)
+	)
+	
+	
+	AND
+	ch.SFMCClaimEligible IS NULL
+	
+	
+	AND
+	cd.C_Strategic_Alliance_Code1 IS NULL
+	
+	
+	AND 
+	NOT EXISTS 
+	(SELECT client_id 
+	FROM [Ex_VC_Global_Client_Opt_Out] gopt
+	WHERE  cd.C_Client_ID1 = gopt.client_id)
+	
+	
+	AND  
+	NOT EXISTS 
+	(SELECT ClientID 
+	FROM [Ex_VC_EFF_No_Promos] eff
+	WHERE  cd.C_Client_ID1 = eff.ClientID)
+	
+	
+	AND  
+	NOT EXISTS 
+	(SELECT client_id 
+	FROM [Ex_VC_Future_Terming_Clients] term
+	WHERE  cd.C_Client_ID1 = term.client_id)
+	
+	
+	AND 
+	NOT EXISTS 
+	(SELECT email_address 
+	FROM [CDP_GR_Individual_Preferences] pref
+	WHERE  cd.C_EmailAddress = pref.email_address
+	AND pref.Opt_In_VC_Benefits = 0)
+	
+	
+	AND 
+	( /*-----MP Opt Out*/
+	NOT EXISTS 
+	(SELECT mp.Email_Address
+	FROM [VC_Subscription_Form_Page_Prod] mp
+	WHERE  cd.C_EmailAddress = mp.Email_Address
+	AND Benefits_Optin = 0)
+	)
+ ) v2
+   
+WHERE
+v2.RowNum = 1
+
+AND
+NOT EXISTS 
+(SELECT SubscriberKey 
+FROM [_bounce] b
+WHERE  v2.primary_individual_identifier = b.SubscriberKey
+AND 
+    (b.BOUNCECATEGORY = 'Hard bounce'
+    OR b.BOUNCECATEGORY = 'Block bounce'
+    )
+)
