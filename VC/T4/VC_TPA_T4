@@ -77,7 +77,7 @@ FROM
 	(
 		(
 		/*-----OE Month = Current Month AND OE Year not in future*/
-		datepart(month,cd.C_Open_Enrollment_Start_Date1) = 10
+		datepart(month,cd.C_Open_Enrollment_Start_Date1) = MONTH(getdate())
 		/*datepart(month,cd.C_Open_Enrollment_Start_Date1) = 5*/
 		AND datepart(year,cd.C_Open_Enrollment_Start_Date1) !> YEAR(getdate())
 		)
@@ -100,7 +100,7 @@ FROM
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-11-%' THEN '11'
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-12-%' THEN '12'
 				ELSE ''
-			  END = 12
+			  END = MONTH(getdate()) +2
 			  /*END = 7*/
 		)
 	)
