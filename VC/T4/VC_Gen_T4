@@ -68,10 +68,14 @@ FROM
 
 	WHERE
 	(
-	cd.C_Email_Source_Code1 = 'M'
-	OR cd.C_Email_Source_Code1 = 'P'
-	OR cd.C_Email_Source_Code1 = 'R'
-	OR cd.C_Email_Source_Code1 = 'S'
+		(cd.C_Email_Source_Code1 = 'M'
+		AND
+		C_Do_Not_Contact1 = '0')
+		OR cd.C_Email_Source_Code1 = 'P'
+		OR
+		(cd.C_Email_Source_Code1 = 'S'
+		AND
+		C_Do_Not_Contact1 = '0')
 	)
 	AND
 	(
