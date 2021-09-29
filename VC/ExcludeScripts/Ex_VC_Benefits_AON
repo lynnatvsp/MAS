@@ -1,0 +1,250 @@
+%%[
+/*------SETUP START------*/
+set @activeOn = 'Y'
+set @primaryOn = 'Y'
+set @SAOn = 'N' /*------SA Version?------*/
+set @client_opt_out_fedOn = 'N' /*------Is there a FED Version?------*/
+set @sbuCmiCmfSaOn = 'Y' /*------SA Version?------*/
+
+/*------PICK EMAIL GROUP START (only 1 should be set to Y)------*/
+set @OptOut_BenefitsOn = 'Y'
+set @OptOut_PromoOn = 'N'
+set @OptOut_EnvisionOn = 'N'
+set @OptOut_EyeconicOn = 'N'
+set @OptOut_RetailOn = 'N'
+/*------PICK EMAIL GROUP END------*/
+
+/* @DNCOn = CUSTOMIZE BELOW */
+ /*------SETUP END------*/
+
+
+
+
+/*----------UserLookup----------*/
+set @UserLookup = LookupRows('Data_Consumer_Load','C_EmailAddress',AttributeValue('email_address'))
+set @row = row(@UserLookup, 1)
+set @SAData = field(@row,'C_Strategic_Alliance_Code1')
+set @SBUData = field(@row,'C_Strategic_Business_Unit1')
+set @Client_IDData = field(@row,'C_Client_ID1')
+set @Client_ClassData = field(@row,'C_Client_Class_ID1')
+set @DNCData = field(@row,'C_Do_Not_Contact1')
+set @Email_SourceData = field(@row,'C_Email_Source_Code1')
+set @StateData = field(@row,'C_State_Prov')
+
+
+
+/*----------DNC - Customized per group----------*/
+if (@Email_SourceData == 'M' OR @Email_SourceData == 'R') AND @DNCData == '1' then
+ set @DNC = 1
+else
+ set @DNC = 0
+endif 
+
+
+
+/*----------SA - Customized per group----------*/
+set @SA = 0
+
+
+
+/*----------AON----------*/
+set @AON = RowCount(LookupRows('T4_AON_ClientIDs','client_id', @Client_IDData))
+
+
+
+/*----------SBU----------*/
+if (@SBUData == 'Commercial Markets Field' OR @SBUData == 'Commercial Markets Inside') AND @sbuCmiCmfSaOn == 'N' then
+ set @SBU = 0
+elseif (@SBUData == 'Commercial Markets Field' OR @SBUData == 'Commercial Markets Inside' OR @SBUData == 'S. Alliance/Private Exchanges') AND @sbuCmiCmfSaOn == 'Y' then
+ set @SBU = 0
+else
+ set @SBU = 1
+endif 
+
+
+/*----------Active----------*/
+if @activeOn == 'Y' then
+ if RowCount(LookupRows('Data_Consumer_ActiveEmails','EmailAddress',AttributeValue('email_address'))) then
+  set @active = 0
+ else
+  set @active = 1
+ endif
+else
+ set @active = 0
+endif
+
+
+/*----------Primary----------*/
+if @primaryOn == 'Y' then
+ if RowCount(LookupRows(' Eloqua_PrimaryEmails','EmailAddress',AttributeValue('email_address'))) then
+  set @primary = 0
+ else
+  set @primary = 1
+ endif
+else
+ set @primary = 0
+endif
+
+
+
+/*----------Opt In Benefits (SF)----------*/
+if @OptOut_BenefitsOn == 'Y' then
+ set @OptOut_SF_Benefits = RowCount(LookupRows('CDP_GR_Individual_Preferences','email_address',AttributeValue('email_address'),'Opt_In_VC_Benefits',0))
+ set @OptOut_MP_Benefits = RowCount(LookupRows('VC_Subscription_Form_Page_Prod','email_address',AttributeValue('email_address'),'Benefits_Optin',0))
+else
+ set @OptOut_SF_Benefits = 0
+ set @OptOut_MP_Benefits = 0
+endif
+
+
+
+/*----------Opt In Promo (SF)----------*/
+if @OptOut_PromoOn == 'Y' then
+ set @OptOut_SF_Promo = RowCount(LookupRows('CDP_GR_Individual_Preferences','email_address',AttributeValue('email_address'),'Opt_In_VC_Promotions',0))
+ set @OptOut_MP_Promo = RowCount(LookupRows('VC_Subscription_Form_Page_Prod','email_address',AttributeValue('email_address'),'Promo_Optin',0))
+else
+ set @OptOut_SF_Promo = 0
+ set @OptOut_MP_Promo = 0
+endif
+
+
+
+/*----------Opt In Envision (SF)----------*/
+if @OptOut_EnvisionOn == 'Y' then
+ set @OptOut_SF_Envision = RowCount(LookupRows('CDP_GR_Individual_Preferences','email_address',AttributeValue('email_address'),'Opt_In_VC_Envision',0))
+ set @OptOut_MP_Envision = RowCount(LookupRows('VC_Subscription_Form_Page_Prod','email_address',AttributeValue('email_address'),'Envision_Optin',0))
+else
+ set @OptOut_SF_Envision = 0
+ set @OptOut_MP_Envision = 0
+endif
+
+
+/*----------Opt In Eyeconic (SF)----------*/
+if @OptOut_EyeconicOn == 'Y' then
+ set @OptOut_SF_Eyeconic = RowCount(LookupRows('CDP_GR_Individual_Preferences','email_address',AttributeValue('email_address'),'Opt_In_VC_Eyeconic',0))
+ set @OptOut_MP_Eyeconic = RowCount(LookupRows('VC_Subscription_Form_Page_Prod','email_address',AttributeValue('email_address'),'Eyeconic_Optin',0))
+else
+ set @OptOut_SF_Eyeconic = 0
+ set @OptOut_MP_Eyeconic = 0
+endif
+
+
+
+/*----------Opt In Retail (SF)----------*/
+if @OptOut_RetailOn == 'Y' then
+ set @OptOut_SF_Retail = RowCount(LookupRows('CDP_GR_Individual_Preferences','email_address',AttributeValue('email_address'),'Opt_In_VC_Retail',0))
+ set @OptOut_MP_Retail = RowCount(LookupRows('VC_Subscription_Form_Page_Prod','email_address',AttributeValue('email_address'),'Retail_Optin',0))
+else
+ set @OptOut_SF_Retail = 0
+ set @OptOut_MP_Retail = 0
+endif
+
+
+
+/*----------Delete Account (MP)----------*/
+set @Delete_MP = RowCount(LookupRows('VC_Subscription_Form_Page_Delete_Prod','email_address',AttributeValue('email_address')))
+
+
+
+/*----------Client Opt Out----------*/
+if @client_opt_out_fedOn == 'Y' AND @client_id == '12297317' then
+ set @client_opt_out = 0
+elseif @client_opt_out_fedOn == 'Y' AND @client_id == '12297318' then
+ set @client_opt_out = 0
+elseif @client_opt_out_fedOn == 'Y' AND (@client_id != '12297317' AND @client_id != '12297318') then
+ set @client_opt_out = 1
+else
+ set @client_opt_out = ROWCOUNT(LOOKUPROWS('Ex_VC_Global_Client_Opt_Out','client_id', @Client_IDData))
+endif
+
+
+
+/*----------Cigna and Metlife----------*/
+Var @String, @Value, @Output 
+
+Set @textCigna = "CIGNA" 
+Set @textMetlife = "METLIFE" 
+
+/* Does it match; ; if no match, output of IndexOf(1,2) will be "0" */ 
+if IndexOf(@SAData,@textCigna) > 0 then 
+    Set @cig = 1
+else 
+    Set @cig = 0
+endif 
+
+if IndexOf(@SAData,@textMetlife) > 0 then 
+    Set @met = 1
+else 
+    Set @met = 0
+endif 
+
+
+/*----------Add all found records----------*/
+set @totalOptOut01  = Add(@DNC, @active)
+set @totalOptOut02  = Add(@totalOptOut01, @OptOut_SF_Benefits)
+set @totalOptOut03  = Add(@totalOptOut02, @OptOut_MP_Benefits)
+set @totalOptOut04  = Add(@totalOptOut03, @Delete_MP)
+set @totalOptOut05  = Add(@totalOptOut04, @primary)
+set @totalOptOut06  = Add(@totalOptOut05, @SA)
+set @totalOptOut07  = Add(@totalOptOut06, @cig)
+set @totalOptOut08  = Add(@totalOptOut07, @met)
+set @totalOptOut09  = Add(@totalOptOut08, @SBU)
+set @totalOptOut10  = Add(@totalOptOut09, @AON)
+set @totalOptOut  = Add(@totalOptOut10, @client_opt_out)
+
+if @totalOptOut > 0 then
+ set @excludeSend = 1
+else
+ set @excludeSend = 0
+endif
+
+
+
+/*--------------DEBUG Ex_VC_Benefits<br>
+Email_SourceData = %%=v(@Email_SourceData)=%%<br>
+AON = %%=v(@AON)=%%<br>
+DNCData = %%=v(@DNCData)=%%<br>
+SAData: %%=v(@SAData)=%%<br>
+SBUData: %%=v(@SBUData)=%%<br>
+Client_IDData: %%=v(@Client_IDData)=%%<br>
+Client_ClassData: %%=v(@Client_ClassData)=%%<br>
+StateData: %%=v(@StateData)=%%<br>
+<br>
+active: %%=v(@active)=%%<br>
+OptOut_SF_Benefits: %%=v(@OptOut_SF_Benefits)=%%<br>
+OptOut_MP_Benefits: %%=v(@OptOut_MP_Benefits)=%%<br>
+Delete_MP: %%=v(@Delete_MP)=%%<br>
+primary: %%=v(@primary)=%%<br>
+DNC: %%=v(@DNC)=%%<br>
+SA: %%=v(@SA)=%%<br>
+SBU: %%=v(@SBU)=%%<br>
+client_opt_out: %%=v(@client_opt_out)=%%<br>
+cig: %%=v(@cig)=%%<br>
+met: %%=v(@met)=%%<br>
+totalOptOut: %%=v(@totalOptOut)=%%<br>
+<br>------------------------*/
+
+
+]%%
+Email_SourceData = %%=v(@Email_SourceData)=%%<br>
+AON = %%=v(@AON)=%%<br>
+DNCData = %%=v(@DNCData)=%%<br>
+SAData: %%=v(@SAData)=%%<br>
+SBUData: %%=v(@SBUData)=%%<br>
+Client_IDData: %%=v(@Client_IDData)=%%<br>
+Client_ClassData: %%=v(@Client_ClassData)=%%<br>
+StateData: %%=v(@StateData)=%%<br>
+<br>
+active: %%=v(@active)=%%<br>
+OptOut_SF_Benefits: %%=v(@OptOut_SF_Benefits)=%%<br>
+OptOut_MP_Benefits: %%=v(@OptOut_MP_Benefits)=%%<br>
+Delete_MP: %%=v(@Delete_MP)=%%<br>
+primary: %%=v(@primary)=%%<br>
+DNC: %%=v(@DNC)=%%<br>
+SA: %%=v(@SA)=%%<br>
+SBU: %%=v(@SBU)=%%<br>
+client_opt_out: %%=v(@client_opt_out)=%%<br>
+cig: %%=v(@cig)=%%<br>
+met: %%=v(@met)=%%<br>
+totalOptOut: %%=v(@totalOptOut)=%%<br>
+%%=v(@excludeSend)=%%
