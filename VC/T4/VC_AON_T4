@@ -107,7 +107,7 @@ FROM
   
           AND /*-----AON*/
          EXISTS 
-         (SELECT client_id 
+         (SELECT aon.ClientID 
          FROM [T4_AON_ClientIDs] aon
          WHERE cd.C_Client_ID1 = aon.ClientID)
 
