@@ -153,6 +153,12 @@ FROM
 	(SELECT email_address 
 	FROM [Ex_VW_Website_Optouts] vw
 	WHERE  cd.C_EmailAddress = vw.Email_Address )
+	
+	AND NOT /*-----------------VIPs------------------*/
+	EXISTS 
+	(SELECT email_address 
+	FROM [Ex_VC_VIP] vip
+	WHERE  cd.C_EmailAddress = vip.email_address )
 
 	) x
 WHERE
