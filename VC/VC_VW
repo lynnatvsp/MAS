@@ -16,6 +16,7 @@ x.email_address
 , x.SFMCClaimOON
 , x.Opt_In_VC_Retail
 , x.Retail_Optin
+, x.nowOpen
 , x.last_claim_frame_provider_categorization
 , x.last_claim_exam_provider_categorization
 , x.last_claim_lens_provider_categorization
@@ -42,6 +43,10 @@ FROM
 	, cdp.last_claim_frame_provider_categorization
 	, cdp.last_claim_exam_provider_categorization
 	, cdp.last_claim_lens_provider_categorization
+	, CASE
+        WHEN oz.zip IS NOT NULL THEN 'Y'
+        ELSE 'N'
+      END AS nowOpen
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.[primary_individual_identifier] ASC) AS RowNum
 	
 	FROM [Data_Consumer_Load] cd
@@ -56,11 +61,13 @@ FROM
 	LEFT JOIN [Eloqua_Feed_Claim] cc
 	on  cd.C_EmailAddress = cc.[Subscriber Email]
 	LEFT JOIN VW_Zips vwz
-	ON vwz.Zip = cd.C_Zip_Postal
+	ON cd.C_Zip_Postal = vwz.Zip
 	LEFT JOIN [CDP_GR_Individual] cdp
 	ON cd.C_EmailAddress = cdp.email_address
 	LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
 	ON cd.C_EmailAddress = mp.[Email_Address]
+	LEFT JOIN [VW_Zips_Opening] oz
+	ON cd.C_Zip_Postal = oz.Zip 
 	
 	WHERE
 	vwz.Zip IS NOT NULL
@@ -78,24 +85,100 @@ FROM
 	
 	AND
 	( /*Is OON*/
-	  (ch.SFMCClaimRelationship = 'Member'
-	  AND
-	  ch.SFMCClaimOON = 'Y')
+	  (
+    	  (ch.SFMCClaimRelationship = 'Member'
+    	  AND
+    	  ch.SFMCClaimOON = 'Y')
+    		AND 
+        		(NOT
+            		(cdp.last_claim_frame_provider_categorization = 'Gold'
+            		OR cdp.last_claim_frame_provider_categorization = 'Platinum')
+            		OR cdp.last_claim_frame_provider_categorization IS NULL
+            	)
+            		
+            AND 
+                (NOT
+                    (cdp.last_claim_lens_provider_categorization = 'Gold'
+            		OR cdp.last_claim_lens_provider_categorization = 'Platinum')
+                	OR cdp.last_claim_lens_provider_categorization IS NULL
+                )
+            		
+            AND 
+                (NOT
+                    (cdp.last_claim_contact_lens_provider_categorization = 'Gold'
+            		OR cdp.last_claim_contact_lens_provider_categorization = 'Platinum')
+                	OR cdp.last_claim_contact_lens_provider_categorization IS NULL
+                )
+            		
+            AND 
+                (NOT
+                    (cdp.last_claim_exam_provider_categorization = 'Gold'
+            		OR cdp.last_claim_exam_provider_categorization = 'Platinum')
+                	OR cdp.last_claim_exam_provider_categorization IS NULL
+                )
+    	)
 	
 	  OR /*Is NOC*/
-	  ch.[Email Address] IS NULL
+	  (ch.[Email Address] IS NULL
+		AND 
+    		(NOT
+        		(cdp.last_claim_frame_provider_categorization = 'Gold'
+        		OR cdp.last_claim_frame_provider_categorization = 'Platinum')
+        		OR cdp.last_claim_frame_provider_categorization IS NULL
+        	)
+        		
+        AND 
+            (NOT
+                (cdp.last_claim_lens_provider_categorization = 'Gold'
+        		OR cdp.last_claim_lens_provider_categorization = 'Platinum')
+            	OR cdp.last_claim_lens_provider_categorization IS NULL
+            )
+        		
+        AND 
+            (NOT
+                (cdp.last_claim_contact_lens_provider_categorization = 'Gold'
+        		OR cdp.last_claim_contact_lens_provider_categorization = 'Platinum')
+            	OR cdp.last_claim_contact_lens_provider_categorization IS NULL
+            )
+        		
+        AND 
+            (NOT
+                (cdp.last_claim_exam_provider_categorization = 'Gold'
+        		OR cdp.last_claim_exam_provider_categorization = 'Platinum')
+            	OR cdp.last_claim_exam_provider_categorization IS NULL
+            )
+	  )
 	  
 	  OR /*Is INN*/
 	  (ch.SFMCClaimOON = '' OR ch.SFMCClaimOON IS NULL
-		AND NOT
-		(cdp.last_claim_frame_provider_categorization = 'Gold'
-		OR cdp.last_claim_frame_provider_categorization = 'Platinum'
-		OR cdp.last_claim_lens_provider_categorization = 'Gold'
-		OR cdp.last_claim_lens_provider_categorization = 'Platinum'
-		OR cdp.last_claim_contact_lens_provider_categorization = 'Gold'
-		OR cdp.last_claim_contact_lens_provider_categorization = 'Platinum'
-		OR cdp.last_claim_exam_provider_categorization = 'Gold'
-		OR cdp.last_claim_exam_provider_categorization = 'Platinum')
+		AND 
+    		(NOT
+        		(cdp.last_claim_frame_provider_categorization = 'Gold'
+        		OR cdp.last_claim_frame_provider_categorization = 'Platinum')
+        		OR cdp.last_claim_frame_provider_categorization IS NULL
+        	)
+        		
+        AND 
+            (NOT
+                (cdp.last_claim_lens_provider_categorization = 'Gold'
+        		OR cdp.last_claim_lens_provider_categorization = 'Platinum')
+            	OR cdp.last_claim_lens_provider_categorization IS NULL
+            )
+        		
+        AND 
+            (NOT
+                (cdp.last_claim_contact_lens_provider_categorization = 'Gold'
+        		OR cdp.last_claim_contact_lens_provider_categorization = 'Platinum')
+            	OR cdp.last_claim_contact_lens_provider_categorization IS NULL
+            )
+        		
+        AND 
+            (NOT
+                (cdp.last_claim_exam_provider_categorization = 'Gold'
+        		OR cdp.last_claim_exam_provider_categorization = 'Platinum')
+            	OR cdp.last_claim_exam_provider_categorization IS NULL
+            )
+        		
 	  )
 	)
 	
