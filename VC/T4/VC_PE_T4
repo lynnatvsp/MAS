@@ -107,7 +107,7 @@ FROM
   
           AND /*-----PE*/
          EXISTS 
-         (SELECT client_id 
+         (SELECT ClientID 
          FROM [T4_PE_ClientIDs] pe
          WHERE cd.C_Client_ID1 = pe.ClientID)
 
