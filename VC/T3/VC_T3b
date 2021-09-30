@@ -1,0 +1,149 @@
+SELECT
+x.primary_individual_identifier
+, x.email_address
+, x.EMAIL
+, x.client_id
+, x.C_Vision_Savings_Pass1
+, x.Strategic_Alliance_Code
+, x.state
+, x.zip
+, x.email_source
+, x.C_Do_Not_Contact1 
+
+FROM 
+	(SELECT
+	sl.primary_individual_identifier
+	, cd.C_EmailAddress as email_address
+	, cd.C_EmailAddress as EMAIL
+	, cd.C_Client_ID1 as client_id
+	, cd.C_Vision_Savings_Pass1
+	, cd.C_Strategic_Alliance_Code1 as Strategic_Alliance_Code
+	, cd.C_State_Prov as state
+	, cd.C_Zip_Postal as zip
+	, cd.C_Email_Source_Code1 as email_source
+	, cd.C_Do_Not_Contact1 
+	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY sl.primary_individual_identifier ASC) AS RowNum
+	
+	FROM _Sent s
+	INNER JOIN _Job j
+	ON s.JobID = j.JobID
+	INNER JOIN [VSP_Send_Log] sl
+	ON s.JobID = sl.JobID
+	AND s.SubscriberKey = sl.primary_individual_identifier
+	AND s.BatchID = sl.BatchID
+	AND s.JobID = sl.JobID
+	INNER JOIN CDP_GR_Individual cdp
+	ON sl.primary_individual_identifier = cdp.primary_individual_identifier
+	INNER JOIN Data_Consumer_Load cd
+	ON cdp.email_address = cd.C_EmailAddress
+	INNER JOIN Data_Consumer_ActiveEmails a
+	ON a.EmailAddress = cd.C_EmailAddress
+	INNER JOIN Eloqua_PrimaryEmails p
+	ON p.EmailAddress = cd.C_EmailAddress
+	INNER JOIN [CDP_GR_Individual_Preferences] pref
+	ON cd.C_EmailAddress  = pref.email_address
+	
+	WHERE 
+	j.emailname LIKE '%_VBS%'
+	AND j.emailname LIKE 'VC_%'
+	AND s.EventDate >= DATEADD(DAY, -120, GETDATE())
+	
+	AND 
+	( /*-----Previously sent*/
+	NOT EXISTS 
+	(SELECT
+    	sl.primary_individual_identifier
+    	
+    	FROM _Sent s
+    	INNER JOIN _Job j
+    	ON s.JobID = j.JobID
+    	INNER JOIN [VSP_Send_Log] sl
+    	ON s.JobID = sl.JobID
+    	AND s.SubscriberKey = sl.primary_individual_identifier
+    	AND s.BatchID = sl.BatchID
+    	AND s.JobID = sl.JobID
+    	INNER JOIN CDP_GR_Individual cdp
+    	ON sl.primary_individual_identifier = cdp.primary_individual_identifier
+    	INNER JOIN Data_Consumer_Load cd
+    	ON cdp.email_address = cd.C_EmailAddress
+    	INNER JOIN Data_Consumer_ActiveEmails a
+    	ON a.EmailAddress = cd.C_EmailAddress
+    	INNER JOIN Eloqua_PrimaryEmails p
+    	ON p.EmailAddress = cd.C_EmailAddress
+    	INNER JOIN [CDP_GR_Individual_Preferences] pref
+    	ON cd.C_EmailAddress  = pref.email_address
+    	
+    	WHERE 
+    	j.emailname LIKE '%_T3b%'
+    	AND j.emailname LIKE 'VC_%'
+    	AND s.EventDate >= DATEADD(DAY, -120, GETDATE()))
+    )
+	
+	
+	AND
+	( /*-----Is opted in to Benefits in SF*/
+		pref.Opt_In_VC_Benefits = 1
+	)
+	
+	AND 
+	( /*-----MP Opt Out*/
+	NOT EXISTS 
+	(SELECT mp.Email_Address
+	FROM [VC_Subscription_Form_Page_Prod] mp
+	WHERE  cd.C_EmailAddress = mp.Email_Address
+	AND Benefits_Optin = 0)
+	)
+	
+	AND 
+	( /*-----Future Terming Client*/
+	NOT EXISTS 
+	(SELECT term.client_id 
+	FROM [Ex_VC_Future_Terming_Clients] term
+	WHERE  cd.C_Client_ID1  = term.client_id)
+	)
+	
+	AND  
+	( /*-----Global Client Opt Out*/
+	NOT EXISTS 
+	(SELECT gopt.client_id 
+	FROM [Ex_VC_Global_Client_Opt_Out] gopt
+	WHERE  cd.C_Client_ID1  = gopt.client_id
+	AND NOT
+	cd.C_Client_ID1 = '12297317'
+	AND NOT
+	cd.C_Client_ID1 = '12297318')
+	)
+	
+	AND
+	(
+		cd.C_Strategic_Alliance_Code1 IS NULL
+		OR
+		( /*-----SA */
+			(cd.C_Strategic_Alliance_Code1 = 'AMERITAS LIFE & DENTAL'
+			OR cd.C_Strategic_Alliance_Code1 = 'KANSAS CITY LIFE INSURANCE COM'
+			OR cd.C_Strategic_Alliance_Code1 = 'AXA EQUITABLE')
+		AND
+			(
+			cd.C_Email_Source_Code1 = 'P'
+			OR
+			cd.C_Email_Source_Code1 = 'S'
+			OR
+			cd.C_Email_Source_Code1 = 'R'
+			OR
+			cd.C_Email_Source_Code1 = 'M'
+			)
+		)
+		OR
+		( /*-----SA */
+		cd.C_Strategic_Alliance_Code1 = 'GUARDIAN LIFE INSURANCE'
+		AND
+		cd.C_Email_Source_Code1 = 'P'
+		AND 
+			(cd.C_State_Prov = 'TX'
+			OR cd.C_State_Prov = 'CA')
+		)
+	)
+	) x
+	
+WHERE
+x.RowNum = 1
