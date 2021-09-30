@@ -1,26 +1,45 @@
 SELECT
-p.primary_individual_identifier 
-, cd.C_EmailAddress 
+cd.C_EmailAddress 
+, cd.C_FirstName 
+, cd.C_LastName 
 , cd.C_Address1 
 , cd.C_State_Prov 
 , cd.C_City 
 , cd.C_Zip_Postal 
-, cdp.primary_individual_identifier as cdpid
+, cd.C_Client_ID1
+, vip.zip
+
+FROM Ex_VC_VIP_ListPull vip
+LEFT JOIN Data_Consumer_Load cd
+ON cd.C_Address1 = vip.mailing_address
+
+WHERE
+vip.mailing_address = cd.C_Address1
+AND
+vip.zip = cd.C_Zip_Postal
+
+
+
+/*----------------------------------------------*/
+
+
+
+SELECT
+cdp.primary_individual_identifier as cdpid
 , cdp.email_address 
+, cdp.first_name
+, cdp.last_name
 , cdp.primary_address_street 
 , cdp.primary_address_state 
 , cdp.primary_address_city 
 , cdp.primary_address_zip
+, cdp.client_id
 
 FROM Ex_VC_VIP_ListPull vip
 LEFT JOIN CDP_GR_Individual cdp
 ON cdp.primary_address_street  = vip.mailing_address
-LEFT JOIN Data_Consumer_Load cd
-ON cd.C_Address1 = vip.mailing_address
-LEFT JOIN CDP_GR_Individual_Preferences p
-ON cd.C_EmailAddress = p.email_address
 
 WHERE
-vip.mailing_address = cd.C_Address1
-OR
 vip.mailing_address = cdp.primary_address_street
+AND
+vip.zip = cdp.primary_address_zip
