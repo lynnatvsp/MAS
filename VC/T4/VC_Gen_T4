@@ -111,7 +111,7 @@ FROM
 	(
 		(
 		/*-----OE Month = Current Month AND OE Year not in future*/
-		datepart(month,cd.C_Open_Enrollment_Start_Date1) = MONTH(getdate())
+		datepart(month,cd.C_Open_Enrollment_Start_Date1) = 10
 		/*datepart(month,cd.C_Open_Enrollment_Start_Date1) = 5*/
 		AND datepart(year,cd.C_Open_Enrollment_Start_Date1) !> YEAR(getdate())
 		)
@@ -134,7 +134,7 @@ FROM
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-11-%' THEN '11'
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-12-%' THEN '12'
 				ELSE ''
-			  END = MONTH(getdate()) +2
+			  END = 12
 			  /*END = 7*/
 		)
 	)
@@ -147,72 +147,39 @@ FROM
          cd.C_Vision_Savings_Pass1 = '0'
 
 
-         AND NOT /*-----Global Client Opt Out*/
-         EXISTS 
-         (SELECT client_id 
-         FROM [Ex_VC_Global_Client_Opt_Out] gopt
-         WHERE cd.C_Client_ID1 = gopt.client_id)
+         AND /*-----Global Client Opt Out*/
+         gopt.client_id IS NULL
 
 
-         AND NOT /*-----Future Terming Client*/
-         EXISTS 
-         (SELECT client_id 
-         FROM [Ex_VC_Future_Terming_Clients] term
-         WHERE cd.C_Client_ID1 = term.client_id)
+         AND /*-----Future Terming Client*/
+         term.client_id IS NULL
 
-
-
-         AND NOT /*-----Opt Out Benefits SF*/
-         EXISTS 
-         (SELECT email_address 
-         FROM [CDP_GR_Individual_Preferences] pref
-         WHERE cd.C_EmailAddress = pref.email_address
-         AND pref.Opt_In_VC_Benefits = 0)
-
-
-         AND NOT /*-----Opt Out Benefits MP*/
-         EXISTS 
-         (SELECT email_address 
-         FROM [VC_Subscription_Form_Page_Prod] mp
-         WHERE cd.C_EmailAddress = mp.email_address
          AND 
-         mp.Benefits_Optin = 0
-         )
+			 (
+			 pref.Opt_In_VC_Benefits = '1' /*-----Opt Out Benefits SF*/
+			 OR
+			 mp.Benefits_Optin = '1' /*-----Opt Out Benefits MP*/
+			 )
 
 
-         AND NOT /*-----CSW Clients*/
-         EXISTS
-         (SELECT client_id 
-         FROM [Ex_VC_CSW_Clients] csw
-         WHERE cd.C_Client_ID1 = csw.client_id)
+         AND /*-----CSW Clients*/
+         csw.client_id IS NULL
 
 
-         AND NOT /*-----TPA Clients*/
-         EXISTS
-         (SELECT client_id 
-         FROM [Ex_VC_TPA_Clients] tpa
-         WHERE cd.C_Client_ID1 = tpa.client_id)
+         AND /*-----TPA Clients*/
+         tpa.client_id IS NULL
 
 
-         AND NOT /*-----Packaged Clients*/
-         EXISTS 
-         (SELECT client_id 
-         FROM [Ex_VC_OE_Packaged_Clients] gopt
-         WHERE cd.C_Client_ID1 = gopt.client_id)
+         AND /*-----Packaged Clients*/
+         gopt.client_id IS NULL
 
 
-         AND NOT /*-----BuyUp Clients*/
-         EXISTS 
-         (SELECT client_id 
-         FROM [Buy_Up_Picklist] bu
-         WHERE cd.C_Client_ID1 = bu.client_id)
+         AND /*-----BuyUp Clients*/
+         bu.client_id IS NULL
 
 
-         AND NOT /*-----OE Client Opt Out*/
-         EXISTS 
-         (SELECT client_id 
-         FROM [Ex_VC_OE_Client_Opt_Out] gopt
-         WHERE cd.C_Client_ID1 = gopt.client_id)
+         AND /*-----OE Client Opt Out*/
+         gopt.client_id IS NULL
          ) v2
    
 WHERE
