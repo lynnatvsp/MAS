@@ -25,6 +25,14 @@ v2.primary_individual_identifier
 , v2.YearOfBirth
 , v2.MonthOfBirth
 , v2.DayOfBirth
+, v2.Ex_VC_Global_Client_Opt_Out
+, v2.Ex_VC_Future_Terming_Clients
+, v2.Ex_VC_CSW_Clients
+, v2.Ex_VC_TPA_Clients
+, v2.Ex_VC_OE_Client_Opt_Out
+, v2.Buy_Up_Picklist
+, v2.Opt_In_VC_Benefits
+, v2.Benefits_Optin
 
 FROM 
    (SELECT
@@ -54,6 +62,14 @@ FROM
 	, datepart(year,cd.C_Date_of_Birth1) as YearOfBirth
 	, datepart(month,cd.C_Date_of_Birth1) as MonthOfBirth
 	, datepart(day,cd.C_Date_of_Birth1) as DayOfBirth
+	, gopt.client_id as Ex_VC_Global_Client_Opt_Out
+	, term.client_id as Ex_VC_Future_Terming_Clients
+	, csw.client_id as Ex_VC_CSW_Clients
+	, tpa.client_id as Ex_VC_TPA_Clients
+	, oeopt.client_id as Ex_VC_OE_Client_Opt_Out
+	, bu.client_id as Buy_Up_Picklist
+	, pref.Opt_In_VC_Benefits
+	, mp.Benefits_Optin
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 
 
@@ -65,6 +81,20 @@ FROM
 	on cd.C_EmailAddress = p.EmailAddress
 	INNER JOIN [CDP_GR_Individual_Preferences] pref
 	ON cd.C_EmailAddress = pref.email_address
+    LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
+    ON cd.C_EmailAddress = mp.email_address
+    LEFT JOIN [Ex_VC_Global_Client_Opt_Out] gopt
+    ON cd.C_Client_ID1 = gopt.client_id
+    LEFT JOIN [Ex_VC_Future_Terming_Clients] term
+    ON cd.C_Client_ID1 = term.client_id
+    LEFT JOIN [Ex_VC_CSW_Clients] csw
+    ON cd.C_Client_ID1 = csw.client_id
+    LEFT JOIN [Ex_VC_TPA_Clients] tpa
+    ON cd.C_Client_ID1 = tpa.client_id
+    LEFT JOIN [Ex_VC_OE_Packaged_Clients] oeopt
+    ON cd.C_Client_ID1 = oeopt.client_id
+    LEFT JOIN [Buy_Up_Picklist] bu
+    ON cd.C_Client_ID1 = bu.client_id
 
 	WHERE
 	(
