@@ -160,6 +160,24 @@ FROM
 			 OR
 			 mp.Benefits_Optin = '1' /*-----Opt Out Benefits MP*/
 			 )
+			 
+	
+	AND NOT /*-----Opt Out Benefits SF*/
+        EXISTS 
+        (SELECT email_address 
+        FROM [CDP_GR_Individual_Preferences] pref
+        WHERE cd.C_EmailAddress = pref.email_address
+        AND pref.Opt_In_VC_Benefits = 0)
+        
+        
+        AND NOT /*-----Opt Out Benefits MP*/
+        EXISTS 
+        (SELECT email_address 
+        FROM [VC_Subscription_Form_Page_Prod] mp
+        WHERE cd.C_EmailAddress = mp.email_address
+        AND 
+        mp.Benefits_Optin = 0
+        )		 
 
 
          AND /*-----CSW Clients*/
