@@ -33,6 +33,9 @@ v2.primary_individual_identifier
 , v2.Buy_Up_Picklist
 , v2.Opt_In_VC_Benefits
 , v2.Benefits_Optin
+, v2.VSPActive
+, v2.VSPPrimary
+, v2.email_tag
 
 FROM 
    (SELECT
@@ -70,6 +73,18 @@ FROM
 	, bu.client_id as Buy_Up_Picklist
 	, pref.Opt_In_VC_Benefits
 	, mp.Benefits_Optin
+	, CASE 
+		WHEN a.EmailAddress IS NOT NULL THEN '1'
+		ELSE '0'
+	      END AS VSPActive
+	, CASE 
+		WHEN p.EmailAddress IS NOT NULL THEN '1'
+		ELSE '0'
+	      END AS VSPPrimary
+	, CASE 
+		WHEN bu.client_id IS NOT NULL THEN 'BuyUp'
+		ELSE 'Gen'
+	      END AS email_tag
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 
 
@@ -197,7 +212,7 @@ FROM
 
 
          AND /*-----OE Client Opt Out*/
-         gopt.client_id IS NULL
+         oeopt.client_id IS NULL
          ) v2
    
 WHERE
