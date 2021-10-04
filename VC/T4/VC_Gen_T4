@@ -207,10 +207,6 @@ FROM
          gopt.client_id IS NULL
 
 
-         AND /*-----BuyUp Clients*/
-         bu.client_id IS NULL
-
-
          AND /*-----OE Client Opt Out*/
          oeopt.client_id IS NULL
          ) v2
