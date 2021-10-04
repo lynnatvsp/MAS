@@ -112,6 +112,10 @@ FROM
     ON cd.C_Client_ID1 = bu.client_id
 
 	WHERE
+	(cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
+	OR cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
+			
+	AND
 	(
 		(cd.C_Email_Source_Code1 = 'M'
 		AND
@@ -135,7 +139,8 @@ FROM
 		datepart(year,cd.C_Open_Enrollment_Start_Date1) = 9999
 		AND (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
 			OR cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
-		AND     CASE 
+		AND     
+			(CASE 
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-01-%' THEN '1'
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-02-%' THEN '2'
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-03-%' THEN '3'
@@ -149,8 +154,11 @@ FROM
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-11-%' THEN '11'
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-12-%' THEN '12'
 				ELSE ''
-			  END = MONTH(getdate()) +2
-			  /*END = 7*/
+				END = MONTH(getdate()) +2
+				/*END = 7*/
+			OR
+			cd.C_Client_Renewal_Month1 = CAST(MONTH(getdate()) +2 as CHAR(2))
+			)
 		)
 	)
 				
