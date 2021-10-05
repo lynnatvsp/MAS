@@ -1,0 +1,139 @@
+SELECT
+pref.primary_individual_identifier
+, cd.C_EmailAddress as email_address
+, cd.C_Client_ID1 as client_id
+, cd.C_Strategic_Alliance_Code1 as strategic_alliance_code
+, cd.C_Email_Source_Code1 as email_source
+, cd.C_Strategic_Business_Unit1 as sbu
+, cd.C_Do_Not_Contact1 as do_not_contact
+, gopt.client_id as Ex_VC_Global_Client_Opt_Out
+, pref.Opt_In_VC_Benefits
+, mp.Benefits_Optin
+, CASE 
+  WHEN a.email_address IS NOT NULL THEN '1'
+  ELSE '0'
+  END AS VSPActive
+, CASE 
+  WHEN p.EmailAddress IS NOT NULL THEN '1'
+  ELSE '0'
+  END AS VSPPrimary
+
+FROM [Data_Consumer_Load] cd /*-----In Consumer Data*/
+INNER JOIN [CDP_GR_Individual] a /*-----and Active*/
+ON cd.C_EmailAddress = a.email_address
+INNER JOIN [Eloqua_PrimaryEmails] p /*-----and Primary*/
+on  cd.C_EmailAddress = p.EmailAddress
+INNER JOIN [CDP_GR_Individual_Preferences] pref
+ON cd.C_EmailAddress = pref.email_address
+LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
+ON cd.C_EmailAddress = mp.email_address
+LEFT JOIN [Ex_VC_Global_Client_Opt_Out] gopt
+ON cd.C_Client_ID1 = gopt.client_id
+
+
+
+WHERE
+/*------------------------------SBU--------*/
+  (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
+  OR 
+  cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
+
+AND /*------------------------------SA--------*/
+cd.C_Strategic_Alliance_Code1 IS NULL
+
+AND /*------------------------------DNC--------*/
+(
+    (cd.C_Email_Source_Code1 = 'M'
+    AND
+    cd.C_Do_Not_Contact1 = '0')
+
+  OR 
+  cd.C_Email_Source_Code1 = 'P'
+
+  OR
+    (cd.C_Email_Source_Code1 = 'S'
+    AND
+    cd.C_Do_Not_Contact1 = '0')
+)
+
+AND /*------------------------------Opt In--------*/
+pref.Opt_In_VC_Envision = 1
+
+AND
+( /*-----Global Client Opt Out*/
+NOT EXISTS 
+(SELECT client_id 
+FROM [Ex_VC_Global_Client_Opt_Out] gopt
+WHERE  cd.C_Client_ID1 = gopt.client_id)
+)
+
+AND
+( /*-----Envision Opt Out*/
+NOT EXISTS 
+(SELECT email_address 
+FROM [CDP_GR_Individual_Preferences] pref
+WHERE  cd.C_EmailAddress = pref.email_address
+AND pref.Opt_In_VC_Envision = 0)
+)
+
+AND /*-----Opt Out Benefits MP*/
+NOT EXISTS 
+(SELECT mp.email_address 
+FROM [VC_Subscription_Form_Page_Prod] mp
+WHERE cd.C_EmailAddress = mp.email_address
+AND 
+mp.Envision_Optin = 0
+)
+
+AND
+(
+  (
+  cd.C_Consumer_ID1 IS NOT NULL
+  AND cd.C_Consumer_ID1 != ''
+
+  AND 
+  pref.Opt_In_VC_Envision = 1
+  )
+
+  OR
+  /*------------------------------FORMER MEMBER--------*/
+  (
+    cd.C_Consumer_ID1 IS NOT NULL
+    AND cd.C_Consumer_ID1 != ''
+
+    AND
+    NOT EXISTS 
+    (SELECT a.email_address 
+    FROM [CDP_GR_Individual] a
+    WHERE  cd.C_EmailAddress = a.email_address)
+
+    AND
+    ( /*-----Sent to previous active email*/
+    EXISTS 
+    (SELECT elq.EmailAddress 
+    FROM [VC_Env_EloquaSend70Days] elq
+    WHERE  cd.C_EmailAddress = elq.EmailAddress)
+    )
+  )
+
+  OR
+  /*------------------------------CONSUMER--------*/
+  (
+    (
+    cd.C_Consumer_ID1 IS NULL
+    OR cd.C_Consumer_ID1 = ''
+    )
+    AND
+    ( /*-----and not active*/
+    NOT EXISTS 
+    (SELECT a.email_address 
+    FROM [CDP_GR_Individual] a
+    WHERE  cd.C_EmailAddress = a.email_address)
+    )
+  )
+  
+  OR
+  /*------------------------------FED--------*/
+  (cd.C_Client_ID1 = '12297317'
+  OR cd.C_Client_ID1 = '12297318')
+)
