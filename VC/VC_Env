@@ -32,9 +32,9 @@ pref.primary_individual_identifier
   END AS email_tag
 
 FROM [Data_Consumer_Load] cd /*-----In Consumer Data*/
-INNER JOIN [CDP_GR_Individual] a /*-----and Active*/
+LEFT JOIN [CDP_GR_Individual] a /*-----and Active*/
 ON cd.C_EmailAddress = a.email_address
-INNER JOIN [Eloqua_PrimaryEmails] p /*-----and Primary*/
+LEFT JOIN [Eloqua_PrimaryEmails] p /*-----and Primary*/
 on  cd.C_EmailAddress = p.EmailAddress
 INNER JOIN [CDP_GR_Individual_Preferences] pref
 ON cd.C_EmailAddress = pref.email_address
@@ -46,30 +46,7 @@ ON cd.C_Client_ID1 = gopt.client_id
 
 
 WHERE
-/*------------------------------SBU--------*/
-  (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
-  OR 
-  cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
-
-AND /*------------------------------SA--------*/
-cd.C_Strategic_Alliance_Code1 IS NULL
-
-AND /*------------------------------DNC--------*/
-(
-    (cd.C_Email_Source_Code1 = 'M'
-    AND
-    cd.C_Do_Not_Contact1 = '0')
-
-  OR 
-  cd.C_Email_Source_Code1 = 'P'
-
-  OR
-    (cd.C_Email_Source_Code1 = 'S'
-    AND
-    cd.C_Do_Not_Contact1 = '0')
-)
-
-AND /*------------------------------Opt In--------*/
+/*------------------------------Opt In--------*/
 pref.Opt_In_VC_Envision = 1
 
 AND
@@ -100,17 +77,47 @@ mp.Envision_Optin = 0
 
 AND
 (
+  /*------------------------------MEMBER--------*/
   (
+  a.email_address IS NOT NULL /*------------Active--------*/
+  AND
+  p.EmailAddress IS NOT NULL /*------------Primary--------*/
+  
+  AND /*------------------------------Consumer ID--------*/
   cd.C_Consumer_ID1 IS NOT NULL
   AND cd.C_Consumer_ID1 != ''
+  
+  AND
+  /*------------------------------SBU--------*/
+  (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
+  OR 
+  cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
 
-  AND 
-  pref.Opt_In_VC_Envision = 1
+  AND /*------------------------------SA--------*/
+  cd.C_Strategic_Alliance_Code1 IS NULL
+
+  AND /*------------------------------DNC--------*/
+  (
+      (cd.C_Email_Source_Code1 = 'M'
+      AND
+      cd.C_Do_Not_Contact1 = '0')
+
+    OR 
+    cd.C_Email_Source_Code1 = 'P'
+
+    OR
+      (cd.C_Email_Source_Code1 = 'S'
+      AND
+      cd.C_Do_Not_Contact1 = '0')
+  )
   )
 
   OR
   /*------------------------------FORMER MEMBER--------*/
   (
+    a.email_address IS NULL /*------------Not Active--------*/
+    
+    AND /*------------------------------Consumer ID--------*/
     cd.C_Consumer_ID1 IS NOT NULL
     AND cd.C_Consumer_ID1 != ''
 
@@ -133,6 +140,9 @@ AND
   /*------------------------------CONSUMER--------*/
   (
     (
+    a.email_address IS NULL /*------------Not Active--------*/
+    
+    AND /*------------------------------Consumer ID--------*/
     cd.C_Consumer_ID1 IS NULL
     OR cd.C_Consumer_ID1 = ''
     )
@@ -147,6 +157,9 @@ AND
   
   OR
   /*------------------------------FED--------*/
+  a.email_address IS NOT NULL /*------------Active--------*/
+  
+  AND
   (cd.C_Client_ID1 = '12297317'
   OR cd.C_Client_ID1 = '12297318')
 )
