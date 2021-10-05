@@ -17,6 +17,19 @@ pref.primary_individual_identifier
   WHEN p.EmailAddress IS NOT NULL THEN '1'
   ELSE '0'
   END AS VSPPrimary
+, CASE 
+  WHEN a.email_address IS NOT NULL
+    AND (cd.C_Client_ID1 = '12297317'
+    OR cd.C_Client_ID1 = '12297318') THEN 'FED'
+  WHEN a.email_address IS NOT NULL
+    AND ((NOT cd.C_Client_ID1 = '12297317'
+        AND NOT cd.C_Client_ID1 = '12297318')
+        OR cd.C_Client_ID1 IS NULL
+    ) THEN 'Mem'
+  WHEN a.email_address IS NULL 
+    AND cd.C_Consumer_ID1 IS NOT NULL THEN 'FMem'
+  ELSE 'Con'
+  END AS email_tag
 
 FROM [Data_Consumer_Load] cd /*-----In Consumer Data*/
 INNER JOIN [CDP_GR_Individual] a /*-----and Active*/
