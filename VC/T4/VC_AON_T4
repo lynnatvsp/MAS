@@ -81,10 +81,7 @@ FROM
 		WHEN p.EmailAddress IS NOT NULL THEN '1'
 		ELSE '0'
 	      END AS VSPPrimary
-	, CASE 
-		WHEN bu.client_id IS NOT NULL THEN 'BuyUp'
-		ELSE 'Gen'
-	      END AS email_tag
+	, 'AON' AS email_tag
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 
 
