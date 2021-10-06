@@ -90,6 +90,9 @@ FROM
 	mp.Benefits_Optin = '1')
 	
 	AND
+	client_funding_type = 'Voluntary'
+	
+	AND
   policy_term_dt >= DATEADD(year,-2,GETDATE())
 	
 	AND
