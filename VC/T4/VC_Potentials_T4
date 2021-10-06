@@ -91,6 +91,9 @@ FROM
 	
 	AND
   policy_term_dt >= DATEADD(year,-2,GETDATE())
+	
+	AND
+  DOB >= DATEADD(year,-55,GETDATE())
   
   AND
 	(ina.sbu = 'Commercial Markets Field'
