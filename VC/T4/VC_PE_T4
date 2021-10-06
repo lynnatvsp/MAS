@@ -112,7 +112,7 @@ FROM
 	C_Strategic_Business_Unit1 = 'S. Alliance/Private Exchanges'
 	
 	AND
-	C_Strategic_Alliance_Code1 IS NOT LIKE '%AON%'
+	C_Strategic_Alliance_Code1 NOT LIKE '%AON%'
 	
 	AND
 	C_Member_Coverage_Start_Date1 <= getdate()
