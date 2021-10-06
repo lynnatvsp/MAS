@@ -112,6 +112,11 @@ FROM
     ON cd.C_Client_ID1 = bu.client_id
 
 	WHERE
+	(pref.Opt_In_VC_Benefits = '1'
+	OR
+	mp.Benefits_Optin = '1')
+	
+	AND
 	(cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
 	OR cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
 			
