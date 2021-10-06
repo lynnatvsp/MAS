@@ -81,7 +81,7 @@ FROM
 		WHEN p.EmailAddress IS NOT NULL THEN '1'
 		ELSE '0'
 	      END AS VSPPrimary
-	, 'AON' AS email_tag
+	, 'PE' AS email_tag
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 
 
@@ -109,6 +109,15 @@ FROM
     ON cd.C_Client_ID1 = bu.client_id
 
 	WHERE
+	C_Strategic_Business_Unit1 = 'S. Alliance/Private Exchanges'
+	
+	AND
+	C_Strategic_Alliance_Code1 IS NOT LIKE '%AON%'
+	
+	AND
+	C_Member_Coverage_Start_Date1 <= getdate()
+	
+	AND
 	(
 	cd.C_Email_Source_Code1 = 'M'
 	OR cd.C_Email_Source_Code1 = 'P'
