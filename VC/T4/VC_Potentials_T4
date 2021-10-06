@@ -95,7 +95,7 @@ FROM
 	(
 		(ina.email_source = 'Membership'
 		AND
-		ina.client_do_not_contact_ind = '0')
+		ina.client_do_not_contact_ind = 'N')
 		
 		OR 
 		ina.email_source = 'Portal'
