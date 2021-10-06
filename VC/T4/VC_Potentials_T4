@@ -85,6 +85,11 @@ FROM
   ON ina.client_id = bu.client_id
 
 	WHERE
+	(pref.Opt_In_VC_Benefits = '1'
+	OR
+	mp.Benefits_Optin = '1')
+	
+	AND
   policy_term_dt >= DATEADD(year,-2,GETDATE())
   
   AND
