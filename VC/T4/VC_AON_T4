@@ -109,6 +109,12 @@ FROM
     ON cd.C_Client_ID1 = bu.client_id
 
 	WHERE
+	C_Strategic_Business_Unit1 IS NOT NULL
+	
+	AND
+	C_Member_Coverage_Start_Date1 <= getdate()
+	
+	AND
 	(
 	cd.C_Email_Source_Code1 = 'M'
 	OR cd.C_Email_Source_Code1 = 'P'
