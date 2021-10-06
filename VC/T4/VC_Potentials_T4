@@ -1,0 +1,207 @@
+SELECT
+v2.primary_individual_identifier
+, v2.email_address
+, v2.date_of_birth
+, v2.client_id
+, v2.strategic_alliance_code
+, v2.class_id
+, v2.zip
+, v2.state
+, v2.email_source
+, v2.open_enrollment_start_date
+, v2.sbu
+, v2.client_renewal_month
+, v2.open_enrollment_end_date
+, v2.do_not_contact
+, v2.member_coverage_start_date
+, v2.member_coverage_end_date
+, v2.vision_savings_pass
+, v2.opt_in_benefits
+, v2.FirstName
+, v2.LastName
+, v2.City
+, v2.State_Country_Province
+, v2.ZipCode
+, v2.YearOfBirth
+, v2.MonthOfBirth
+, v2.DayOfBirth
+, v2.Ex_VC_Global_Client_Opt_Out
+, v2.Ex_VC_Future_Terming_Clients
+, v2.Ex_VC_CSW_Clients
+, v2.Ex_VC_TPA_Clients
+, v2.Ex_VC_OE_Client_Opt_Out
+, v2.Buy_Up_Picklist
+, v2.Opt_In_VC_Benefits
+, v2.Benefits_Optin
+, v2.email_tag
+
+FROM 
+   (SELECT
+	pref.primary_individual_identifier
+	, in.email_address as email_address
+	, in.dob as date_of_birth
+	, in.client_id as client_id
+	, in.std_state as state
+	, in.email_source as email_source
+	, in.open_enrollment_start_date as open_enrollment_start_date
+	, in.sbu as sbu
+	, in.renewal_date_adjusted_day as client_renewal_month
+	, in.open_enrollment_end_date as open_enrollment_end_date
+	, in.client_do_not_contact_ind as do_not_contact
+	, in.policy_term_dt as member_coverage_end_date
+	, pref.Opt_In_VC_Benefits as opt_in_benefits
+	, in.first_name as FirstName
+	, in.last_name as LastName
+	, in.std_city as City
+	, in.std_state as State_Country_Province
+	, in.std_postal_code_1 as zip
+	, datepart(year,in.C_Date_of_Birth1) as YearOfBirth
+	, datepart(month,in.C_Date_of_Birth1) as MonthOfBirth
+	, datepart(day,in.C_Date_of_Birth1) as DayOfBirth
+	, gopt.client_id as Ex_VC_Global_Client_Opt_Out
+	, term.client_id as Ex_VC_Future_Terming_Clients
+	, csw.client_id as Ex_VC_CSW_Clients
+	, tpa.client_id as Ex_VC_TPA_Clients
+	, oeopt.client_id as Ex_VC_OE_Client_Opt_Out
+	, bu.client_id as Buy_Up_Picklist
+	, pref.Opt_In_VC_Benefits
+	, mp.Benefits_Optin
+	, 'Pot' AS email_tag
+	, ROW_NUMBER() OVER(PARTITION BY in.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
+
+
+
+  FROM [VC_Inactive] in /*-----In Consumer Data*/
+  INNER JOIN [CDP_GR_Individual_Preferences] pref
+  ON in.email_address = pref.email_address
+  LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
+  ON in.email_address = mp.email_address
+  LEFT JOIN [Ex_VC_Global_Client_Opt_Out] gopt
+  ON in.client_id = gopt.client_id
+  LEFT JOIN [Ex_VC_Future_Terming_Clients] term
+  ON in.client_id = term.client_id
+  LEFT JOIN [Ex_VC_CSW_Clients] csw
+  ON in.client_id = csw.client_id
+  LEFT JOIN [Ex_VC_TPA_Clients] tpa
+  ON in.client_id = tpa.client_id
+  LEFT JOIN [Ex_VC_OE_Packaged_Clients] oeopt
+  ON in.client_id = oeopt.client_id
+  LEFT JOIN [Buy_Up_Picklist] bu
+  ON in.client_id = bu.client_id
+
+	WHERE
+  policy_term_dt >= DATEADD(year,-2,GETDATE())
+  
+  AND
+	(in.sbu = 'Commercial Markets Field'
+	OR in.sbu = 'Commercial Markets Inside')
+			
+	AND
+	(
+		(in.email_source = 'M'
+		AND
+		in.client_do_not_contact_in = '0')
+		OR in.email_source = 'P'
+		OR
+		(in.email_source = 'S'
+		AND
+		in.client_do_not_contact_in = '0')
+	)
+	AND
+	(
+		(
+		/*-----OE Month = Current Month AND OE Year not in future*/
+		datepart(month,in.open_enrollment_start_date) = MONTH(getdate())
+		/*datepart(month,in.open_enrollment_start_date) = 5*/
+		AND datepart(year,in.open_enrollment_start_date) !> YEAR(getdate())
+		)
+		OR
+		( /*-----OE Month = 9999 AND sbu = (CMI OR CMF) AND Client Renewal Month = Current Month+2*/
+		datepart(year,in.open_enrollment_start_date) = 9999
+		AND (in.sbu = 'Commercial Markets Field'
+			OR in.sbu = 'Commercial Markets Inside')
+		AND     
+			(CASE 
+				WHEN in.renewal_date_adjusted_day LIKE '%-01-%' THEN '1'
+				WHEN in.renewal_date_adjusted_day LIKE '%-02-%' THEN '2'
+				WHEN in.renewal_date_adjusted_day LIKE '%-03-%' THEN '3'
+				WHEN in.renewal_date_adjusted_day LIKE '%-04-%' THEN '4'
+				WHEN in.renewal_date_adjusted_day LIKE '%-05-%' THEN '5'
+				WHEN in.renewal_date_adjusted_day LIKE '%-06-%' THEN '6'
+				WHEN in.renewal_date_adjusted_day LIKE '%-07-%' THEN '7'
+				WHEN in.renewal_date_adjusted_day LIKE '%-08-%' THEN '8'
+				WHEN in.renewal_date_adjusted_day LIKE '%-09-%' THEN '9'
+				WHEN in.renewal_date_adjusted_day LIKE '%-10-%' THEN '10'
+				WHEN in.renewal_date_adjusted_day LIKE '%-11-%' THEN '11'
+				WHEN in.renewal_date_adjusted_day LIKE '%-12-%' THEN '12'
+				ELSE ''
+				END = MONTH(getdate()) +2
+				/*END = 7*/
+			OR
+			in.renewal_date_adjusted_day = CAST(MONTH(getdate()) +2 as CHAR(2))
+			)
+		)
+	)
+		
+         AND /*-----Global Client Opt Out*/
+         gopt.client_id IS NULL
+
+
+         AND /*-----Future Terming Client*/
+         term.client_id IS NULL
+
+         AND 
+			 (
+			 pref.Opt_In_VC_Benefits = '1' /*-----Opt Out Benefits SF*/
+			 OR
+			 mp.Benefits_Optin = '1' /*-----Opt Out Benefits MP*/
+			 )
+			 
+	
+	AND NOT /*-----Opt Out Benefits SF*/
+        EXISTS 
+        (SELECT email_address 
+        FROM [CDP_GR_Individual_Preferences] pref
+        WHERE in.email_address = pref.email_address
+        AND pref.Opt_In_VC_Benefits = 0)
+        
+        
+        AND NOT /*-----Opt Out Benefits MP*/
+        EXISTS 
+        (SELECT email_address 
+        FROM [VC_Subscription_Form_Page_Prod] mp
+        WHERE in.email_address = mp.email_address
+        AND 
+        mp.Benefits_Optin = 0
+        )		 
+
+
+         AND /*-----CSW Clients*/
+         csw.client_id IS NULL
+
+
+         AND /*-----TPA Clients*/
+         tpa.client_id IS NULL
+
+
+         AND /*-----Packaged Clients*/
+         gopt.client_id IS NULL
+
+
+         AND /*-----OE Client Opt Out*/
+         oeopt.client_id IS NULL
+         ) v2
+   
+WHERE
+v2.RowNum = 1
+
+AND
+NOT EXISTS 
+(SELECT SubscriberKey 
+FROM [_bounce] b
+WHERE  v2.primary_individual_identifier = b.SubscriberKey
+AND 
+    (b.BOUNCECATEGORY = 'Hard bounce'
+    OR b.BOUNCECATEGORY = 'Block bounce'
+    )
+)
