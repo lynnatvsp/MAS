@@ -36,6 +36,7 @@ v2.primary_individual_identifier
 , v2.VSPActive
 , v2.VSPPrimary
 , v2.email_tag
+, v2.Claimed
 
 FROM 
    (SELECT
