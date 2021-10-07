@@ -123,12 +123,8 @@ FROM
 	C_Member_Coverage_Start_Date1 <= getdate()
 	
 	AND
-	(
-	cd.C_Email_Source_Code1 = 'M'
-	OR cd.C_Email_Source_Code1 = 'P'
-	OR cd.C_Email_Source_Code1 = 'R'
-	OR cd.C_Email_Source_Code1 = 'S'
-	)
+	cd.C_Email_Source_Code1 = 'P'
+	
 	AND
 	(
 		(
