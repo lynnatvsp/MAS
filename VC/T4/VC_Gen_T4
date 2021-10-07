@@ -85,6 +85,10 @@ FROM
 		WHEN bu.client_id IS NOT NULL THEN 'BuyUp'
 		ELSE 'Gen'
 	      END AS email_tag
+	, CASE 
+		WHEN cc.[Subscriber Email] IS NOT NULL THEN 'Y'
+		ELSE ''
+	      END AS Claimed
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 
 
@@ -96,20 +100,22 @@ FROM
 	on cd.C_EmailAddress = p.EmailAddress
 	INNER JOIN [CDP_GR_Individual_Preferences] pref
 	ON cd.C_EmailAddress = pref.email_address
-    LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
-    ON cd.C_EmailAddress = mp.email_address
-    LEFT JOIN [Ex_VC_Global_Client_Opt_Out] gopt
-    ON cd.C_Client_ID1 = gopt.client_id
-    LEFT JOIN [Ex_VC_Future_Terming_Clients] term
-    ON cd.C_Client_ID1 = term.client_id
-    LEFT JOIN [Ex_VC_CSW_Clients] csw
-    ON cd.C_Client_ID1 = csw.client_id
-    LEFT JOIN [Ex_VC_TPA_Clients] tpa
-    ON cd.C_Client_ID1 = tpa.client_id
-    LEFT JOIN [Ex_VC_OE_Packaged_Clients] oeopt
-    ON cd.C_Client_ID1 = oeopt.client_id
-    LEFT JOIN [Buy_Up_Picklist] bu
-    ON cd.C_Client_ID1 = bu.client_id
+	LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
+	ON cd.C_EmailAddress = mp.email_address
+	LEFT JOIN [Ex_VC_Global_Client_Opt_Out] gopt
+	ON cd.C_Client_ID1 = gopt.client_id
+	LEFT JOIN [Ex_VC_Future_Terming_Clients] term
+	ON cd.C_Client_ID1 = term.client_id
+	LEFT JOIN [Ex_VC_CSW_Clients] csw
+	ON cd.C_Client_ID1 = csw.client_id
+	LEFT JOIN [Ex_VC_TPA_Clients] tpa
+	ON cd.C_Client_ID1 = tpa.client_id
+	LEFT JOIN [Ex_VC_OE_Packaged_Clients] oeopt
+	ON cd.C_Client_ID1 = oeopt.client_id
+	LEFT JOIN [Buy_Up_Picklist] bu
+	ON cd.C_Client_ID1 = bu.client_id
+	LEFT JOIN [Eloqua_Feed_Claim] cc
+	ON cd.C_EmailAddress = cc.[Subscriber Email]
 
 	WHERE
 	(pref.Opt_In_VC_Benefits = '1'
