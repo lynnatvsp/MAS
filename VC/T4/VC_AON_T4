@@ -36,6 +36,7 @@ v2.primary_individual_identifier
 , v2.VSPActive
 , v2.VSPPrimary
 , v2.email_tag
+, v2.Claimed
 
 FROM 
    (SELECT
@@ -82,6 +83,10 @@ FROM
 		ELSE '0'
 	      END AS VSPPrimary
 	, 'AON' AS email_tag
+	, CASE 
+		WHEN cc.[Subscriber Email] IS NOT NULL THEN 'Y'
+		ELSE ''
+	      END AS Claimed
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 
 
