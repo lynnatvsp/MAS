@@ -112,6 +112,8 @@ FROM
     ON cd.C_Client_ID1 = oeopt.client_id
     LEFT JOIN [Buy_Up_Picklist] bu
     ON cd.C_Client_ID1 = bu.client_id
+	LEFT JOIN [Eloqua_Feed_Claim] cc
+	ON cd.C_EmailAddress = cc.[Subscriber Email]
 
 	WHERE
 	(pref.Opt_In_VC_Benefits = '1'
