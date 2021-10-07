@@ -130,9 +130,9 @@ AND
     AND
     ( /*-----Sent to previous active email*/
     EXISTS 
-    (SELECT elq.EmailAddress 
-    FROM [VC_Env_EloquaSend70Days] elq
-    WHERE  cd.C_EmailAddress = elq.EmailAddress)
+    (SELECT psend.EmailAddress 
+    FROM [VC_Env_EloquaSend6Months] psend
+    WHERE  cd.C_EmailAddress = psend.EmailAddress)
     )
   )
 
