@@ -139,42 +139,6 @@ FROM
 			
 	AND
 	cd.C_Email_Source_Code1 = 'P'
-	
-	AND
-	(
-		(
-		/*-----OE Month = Current Month AND OE Year not in future*/
-		datepart(month,cd.C_Open_Enrollment_Start_Date1) = MONTH(getdate())
-		/*datepart(month,cd.C_Open_Enrollment_Start_Date1) = 5*/
-		AND datepart(year,cd.C_Open_Enrollment_Start_Date1) !> YEAR(getdate())
-		)
-		OR
-		( /*-----OE Month = 9999 AND sbu = (CMI OR CMF) AND Client Renewal Month = Current Month+2*/
-		datepart(year,cd.C_Open_Enrollment_Start_Date1) = 9999
-		AND (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
-			OR cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
-		AND     
-			(CASE 
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-01-%' THEN '1'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-02-%' THEN '2'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-03-%' THEN '3'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-04-%' THEN '4'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-05-%' THEN '5'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-06-%' THEN '6'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-07-%' THEN '7'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-08-%' THEN '8'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-09-%' THEN '9'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-10-%' THEN '10'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-11-%' THEN '11'
-				WHEN cd.C_Client_Renewal_Month1 LIKE '%-12-%' THEN '12'
-				ELSE ''
-				END = MONTH(getdate()) +2
-				/*END = 7*/
-			OR
-			cd.C_Client_Renewal_Month1 = CAST(MONTH(getdate()) +2 as CHAR(2))
-			)
-		)
-	)
 
          AND /*-----Savings Pass*/
          cd.C_Vision_Savings_Pass1 = '0'
