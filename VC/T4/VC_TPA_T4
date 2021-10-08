@@ -25,6 +25,19 @@ v2.primary_individual_identifier
 , v2.YearOfBirth
 , v2.MonthOfBirth
 , v2.DayOfBirth
+, v2.Ex_VC_Global_Client_Opt_Out
+, v2.Ex_VC_Future_Terming_Clients
+, v2.Ex_VC_CSW_Clients
+, v2.Ex_VC_TPA_Clients
+, v2.Ex_VC_OE_Client_Opt_Out
+, v2.Buy_Up_Picklist
+, v2.Opt_In_VC_Benefits
+, v2.Benefits_Optin
+, v2.VSPActive
+, v2.VSPPrimary
+, v2.email_tag
+, v2.div_id
+, v2.Claimed
 
 FROM 
    (SELECT
@@ -54,6 +67,31 @@ FROM
 	, datepart(year,cd.C_Date_of_Birth1) as YearOfBirth
 	, datepart(month,cd.C_Date_of_Birth1) as MonthOfBirth
 	, datepart(day,cd.C_Date_of_Birth1) as DayOfBirth
+	, gopt.client_id as Ex_VC_Global_Client_Opt_Out
+	, term.client_id as Ex_VC_Future_Terming_Clients
+	, csw.client_id as Ex_VC_CSW_Clients
+	, tpa.client_id as Ex_VC_TPA_Clients
+	, oeopt.client_id as Ex_VC_OE_Client_Opt_Out
+	, bu.client_id as Buy_Up_Picklist
+	, pref.Opt_In_VC_Benefits
+	, mp.Benefits_Optin
+	, CASE 
+		WHEN a.EmailAddress IS NOT NULL THEN '1'
+		ELSE '0'
+	      END AS VSPActive
+	, CASE 
+		WHEN p.EmailAddress IS NOT NULL THEN '1'
+		ELSE '0'
+	      END AS VSPPrimary
+	, CASE 
+		WHEN bu.client_id IS NOT NULL THEN 'BuyUp'
+		ELSE 'Gen'
+	      END AS email_tag
+	, CASE 
+		WHEN cc.[Subscriber Email] IS NOT NULL THEN 'Y'
+		ELSE ''
+	      END AS Claimed
+	, cd.C_Client_Division_ID1 as div_id
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 
 
@@ -65,13 +103,50 @@ FROM
 	on cd.C_EmailAddress = p.EmailAddress
 	INNER JOIN [CDP_GR_Individual_Preferences] pref
 	ON cd.C_EmailAddress = pref.email_address
+	LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
+	ON cd.C_EmailAddress = mp.email_address
+	LEFT JOIN [Ex_VC_Global_Client_Opt_Out] gopt
+	ON cd.C_Client_ID1 = gopt.client_id
+	LEFT JOIN [Ex_VC_Future_Terming_Clients] term
+	ON cd.C_Client_ID1 = term.client_id
+	LEFT JOIN [Ex_VC_CSW_Clients] csw
+	ON cd.C_Client_ID1 = csw.client_id
+	LEFT JOIN [Ex_VC_TPA_Clients] tpa
+	ON cd.C_Client_ID1 = tpa.client_id
+	LEFT JOIN [Ex_VC_OE_Packaged_Clients] oeopt
+	ON cd.C_Client_ID1 = oeopt.client_id
+	LEFT JOIN [Buy_Up_Picklist] bu
+	ON cd.C_Client_ID1 = bu.client_id
+	LEFT JOIN [Eloqua_Feed_Claim] cc
+	ON cd.C_EmailAddress = cc.[Subscriber Email]
 
-	WHERE
+		WHERE
+    /*-----Client ID---------*/
+    (
+        (cd.C_Client_ID1 ='30018587' AND C_Client_Division_ID1 = '0009' AND C_Client_Class_ID1 = '0009')
+        OR
+        (cd.C_Client_ID1 ='12288167' AND C_Client_Division_ID1 = '0024' AND C_Client_Class_ID1 = '0024')
+        OR
+        (cd.C_Client_ID1 ='30018587' AND C_Client_Division_ID1 = '0026' AND C_Client_Class_ID1 = '0026')
+        OR
+        (cd.C_Client_ID1 ='30013275' AND C_Client_Division_ID1 = '0051' AND C_Client_Class_ID1 = '0051')
+    )
+    
+    AND
+	(pref.Opt_In_VC_Benefits = '1'
+	OR
+	mp.Benefits_Optin = '1')
+			
+	AND
 	(
-	cd.C_Email_Source_Code1 = 'M'
-	OR cd.C_Email_Source_Code1 = 'P'
-	OR cd.C_Email_Source_Code1 = 'R'
-	OR cd.C_Email_Source_Code1 = 'S'
+		(cd.C_Email_Source_Code1 = 'M'
+		AND
+		C_Do_Not_Contact1 = '0')
+		OR cd.C_Email_Source_Code1 = 'P'
+		OR
+		(cd.C_Email_Source_Code1 = 'S'
+		AND
+		C_Do_Not_Contact1 = '0')
 	)
 	AND
 	(
@@ -86,7 +161,8 @@ FROM
 		datepart(year,cd.C_Open_Enrollment_Start_Date1) = 9999
 		AND (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
 			OR cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
-		AND     CASE 
+		AND     
+			(CASE 
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-01-%' THEN '1'
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-02-%' THEN '2'
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-03-%' THEN '3'
@@ -100,80 +176,49 @@ FROM
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-11-%' THEN '11'
 				WHEN cd.C_Client_Renewal_Month1 LIKE '%-12-%' THEN '12'
 				ELSE ''
-			  END = MONTH(getdate()) +2
-			  /*END = 7*/
+				END = MONTH(getdate()) +2
+				/*END = 7*/
+			OR
+			cd.C_Client_Renewal_Month1 = CAST(MONTH(getdate()) +2 as CHAR(2))
+			)
 		)
 	)
-
-         AND /*-----TPA Clients*/
-         EXISTS
-         (SELECT client_id 
-         FROM [Ex_VC_TPA_Clients] tpa
-         WHERE cd.C_Client_ID1 = tpa.client_id)
 
          AND /*-----Savings Pass*/
          cd.C_Vision_Savings_Pass1 = '0'
 
 
-         AND NOT /*-----Global Client Opt Out*/
-         EXISTS 
-         (SELECT client_id 
-         FROM [Ex_VC_Global_Client_Opt_Out] gopt
-         WHERE cd.C_Client_ID1 = gopt.client_id)
+         AND /*-----Global Client Opt Out*/
+         gopt.client_id IS NULL
 
 
-         AND NOT /*-----Future Terming Client*/
-         EXISTS 
-         (SELECT client_id 
-         FROM [Ex_VC_Future_Terming_Clients] term
-         WHERE cd.C_Client_ID1 = term.client_id)
+         AND /*-----Future Terming Client*/
+         term.client_id IS NULL
 
-
-
-         AND NOT /*-----Opt Out Benefits SF*/
-         EXISTS 
-         (SELECT email_address 
-         FROM [CDP_GR_Individual_Preferences] pref
-         WHERE cd.C_EmailAddress = pref.email_address
-         AND pref.Opt_In_VC_Benefits = 0)
-
-
-         AND NOT /*-----Opt Out Benefits MP*/
-         EXISTS 
-         (SELECT email_address 
-         FROM [VC_Subscription_Form_Page_Prod] mp
-         WHERE cd.C_EmailAddress = mp.email_address
          AND 
-         mp.Benefits_Optin = 0
-         )
-
-
-         AND NOT /*-----CSW Clients*/
-         EXISTS
-         (SELECT client_id 
-         FROM [Ex_VC_CSW_Clients] csw
-         WHERE cd.C_Client_ID1 = csw.client_id)
-
-
-         AND NOT /*-----Packaged Clients*/
-         EXISTS 
-         (SELECT client_id 
-         FROM [Ex_VC_OE_Packaged_Clients] gopt
-         WHERE cd.C_Client_ID1 = gopt.client_id)
-
-
-         AND NOT /*-----BuyUp Clients*/
-         EXISTS 
-         (SELECT client_id 
-         FROM [Buy_Up_Picklist] bu
-         WHERE cd.C_Client_ID1 = bu.client_id)
-
-
-         AND NOT /*-----OE Client Opt Out*/
-         EXISTS 
-         (SELECT client_id 
-         FROM [Ex_VC_OE_Client_Opt_Out] gopt
-         WHERE cd.C_Client_ID1 = gopt.client_id)
+			 (
+			 pref.Opt_In_VC_Benefits = '1' /*-----Opt Out Benefits SF*/
+			 OR
+			 mp.Benefits_Optin = '1' /*-----Opt Out Benefits MP*/
+			 )
+			 
+	
+	AND NOT /*-----Opt Out Benefits SF*/
+        EXISTS 
+        (SELECT email_address 
+        FROM [CDP_GR_Individual_Preferences] pref
+        WHERE cd.C_EmailAddress = pref.email_address
+        AND pref.Opt_In_VC_Benefits = 0)
+        
+        
+        AND NOT /*-----Opt Out Benefits MP*/
+        EXISTS 
+        (SELECT email_address 
+        FROM [VC_Subscription_Form_Page_Prod] mp
+        WHERE cd.C_EmailAddress = mp.email_address
+        AND 
+        mp.Benefits_Optin = 0
+        )		 
          ) v2
    
 WHERE
