@@ -127,7 +127,7 @@ FROM
         OR
         (cd.C_Client_ID1 ='12288167' AND C_Client_Division_ID1 = '0024' AND C_Client_Class_ID1 = '0024')
         OR
-        (cd.C_Client_ID1 ='30018587' AND C_Client_Division_ID1 = '0026' AND C_Client_Class_ID1 = '0026')
+        (cd.C_Client_ID1 ='12288167' AND C_Client_Division_ID1 = '0026' AND C_Client_Class_ID1 = '0026')
         OR
         (cd.C_Client_ID1 ='30013275' AND C_Client_Division_ID1 = '0051' AND C_Client_Class_ID1 = '0051')
     )
@@ -138,16 +138,8 @@ FROM
 	mp.Benefits_Optin = '1')
 			
 	AND
-	(
-		(cd.C_Email_Source_Code1 = 'M'
-		AND
-		C_Do_Not_Contact1 = '0')
-		OR cd.C_Email_Source_Code1 = 'P'
-		OR
-		(cd.C_Email_Source_Code1 = 'S'
-		AND
-		C_Do_Not_Contact1 = '0')
-	)
+	cd.C_Email_Source_Code1 = 'P'
+	
 	AND
 	(
 		(
