@@ -64,7 +64,7 @@ FROM
 	, pref.Opt_In_VC_Benefits
 	, mp.Benefits_Optin
 	, 'Pot' AS email_tag
-	, x.email_status
+	, x.Status as email_status
 	, x.catch_all_domain
 	, ROW_NUMBER() OVER(PARTITION BY ina.email_address ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 
