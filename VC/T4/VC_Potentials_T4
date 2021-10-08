@@ -28,12 +28,14 @@ v2.primary_individual_identifier
 , v2.Buy_Up_Picklist
 , v2.Opt_In_VC_Benefits
 , v2.Benefits_Optin
+, v2.email_status
+, v2.catch_all_domain
 , v2.email_tag
 
 FROM 
    (SELECT
 	pref.primary_individual_identifier
-	, ina.email_address as email_address
+	, ina.email_address
 	, ina.dob as date_of_birth
 	, ina.client_id as client_id
 	, ina.std_state as state
@@ -62,6 +64,8 @@ FROM
 	, pref.Opt_In_VC_Benefits
 	, mp.Benefits_Optin
 	, 'Pot' AS email_tag
+	, x.email_status
+	, x.catch_all_domain
 	, ROW_NUMBER() OVER(PARTITION BY ina.email_address ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 
 
@@ -83,8 +87,17 @@ FROM
   ON ina.client_id = oeopt.client_id
   LEFT JOIN [Buy_Up_Picklist] bu
   ON ina.client_id = bu.client_id
+  LEFT JOIN [VC_Potentials_T4_Xverify] x
+  ON ina.email_address = x.email_address
+  
 
 	WHERE
+	x.Status = 'Valid'
+	
+	AND
+	x.Catch_All_Domain = 'FALSE'
+	
+	AND
 	(pref.Opt_In_VC_Benefits = '1'
 	OR
 	mp.Benefits_Optin = '1')
