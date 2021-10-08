@@ -133,6 +133,9 @@ FROM
     )
     
     AND
+	cd.C_Member_Coverage_Start_Date1 < getdate() 
+	
+	AND
 	(pref.Opt_In_VC_Benefits = '1'
 	OR
 	mp.Benefits_Optin = '1')
