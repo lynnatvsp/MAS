@@ -36,18 +36,19 @@ FROM
 	, CASE
 		WHEN (cc.[Exam Date of Service] IS NOT NULL AND ch.SFMCClaimType <> 'Exam Only') THEN 'EO'
 		WHEN ch.SFMCClaimOON = 'Y' AND
-			(ch.SFMCClaimMonth09 = 'Y'
-			OR ch.SFMCClaimMonth10 = 'Y'
-			OR ch.SFMCClaimMonth11 = 'Y') THEN 'OON'
+			(ch.SFMCClaimMonth10 = 'Y'
+			OR ch.SFMCClaimMonth11 = 'Y'
+			OR ch.SFMCClaimMonth12 = 'Y') THEN 'OON'
 		WHEN (ch.SFMCClaimOON = '' OR ch.SFMCClaimOON IS NULL) AND
-			(ch.SFMCClaimMonth09 = 'Y'
-			OR ch.SFMCClaimMonth10 = 'Y'
-			OR ch.SFMCClaimMonth11 = 'Y')
+			(ch.SFMCClaimMonth10 = 'Y'
+			OR ch.SFMCClaimMonth11 = 'Y'
+			OR ch.SFMCClaimMonth12 = 'Y')
 			THEN 'INN'
 		ELSE 'NOC'
 		END AS email_tag
 	, ch.SFMCClaimMonth09
 	, ch.SFMCClaimMonth11
+	, ch.SFMCClaimMonth12
 	, ch.SFMCClaimOON
 	, ch.SFMCClaimType 
 	, pref.Opt_In_VC_Benefits
@@ -71,8 +72,8 @@ FROM
 	WHERE
 	
 	(
-		(ch.SFMCClaimMonth09 = 'Y'
-		OR ch.SFMCClaimMonth11 = 'Y')
+		(ch.SFMCClaimMonth11 = 'Y'
+		OR ch.SFMCClaimMonth12 = 'Y')
 		
 		OR
 		(
