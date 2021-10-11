@@ -123,11 +123,357 @@ FROM
 		WHERE
     /*-----Client ID---------*/
     (
-        (cd.C_Client_ID1 ='30018587' AND C_Client_Division_ID1 = '0009' AND C_Client_Class_ID1 = '0009')
-        OR
-        (cd.C_Client_ID1 ='12288167' AND C_Client_Division_ID1 = '0024' AND C_Client_Class_ID1 = '0024')
-        OR
-        (cd.C_Client_ID1 ='12288167' AND C_Client_Division_ID1 = '0026' AND C_Client_Class_ID1 = '0026')
+        (cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1001')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1003')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1005')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1007')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1009')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1011')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1013')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1015')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1017')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1019')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1021')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1023')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1025')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1027')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1029')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1031')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1033')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1035')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1037')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1039')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1041')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1043')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1045')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1047')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1049')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1051')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1053')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1055')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1057')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1059')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1061')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1063')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1065')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1067')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1069')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1071')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1073')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1075')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1077')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1079')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1081')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1083')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1085')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1087')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1089')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1091')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1093')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1095')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1097')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1099')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1101')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1103')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1105')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1107')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1109')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1111')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1113')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1115')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1117')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1119')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1121')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1123')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1125')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1127')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1129')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1131')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1133')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1135')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1137')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1139')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1141')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1143')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1147')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1149')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1151')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1153')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1155')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1157')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1159')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1161')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1163')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1165')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1167')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1169')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1171')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1173')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1175')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '1177')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6001')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6003')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6005')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6007')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6009')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6011')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6013')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6015')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6017')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6019')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6021')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6023')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6025')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6027')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6029')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6031')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6033')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6035')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6037')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6039')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6041')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6043')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6045')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6047')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6049')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6051')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6053')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6055')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6057')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6059')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6061')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6063')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6065')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6067')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6069')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6071')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6073')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6075')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6077')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6079')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6081')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6083')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6085')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6087')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6089')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6091')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6093')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6095')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6097')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6099')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6101')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6103')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6105')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6107')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6109')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6111')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6113')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6115')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6117')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6119')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6121')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6123')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6125')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6127')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6131')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6133')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6135')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6137')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6139')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6141')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6143')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6145')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6147')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6149')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6151')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6153')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6155')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6157')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6159')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6161')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6163')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6165')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6167')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6169')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6171')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6173')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6175')
+	OR
+	(cd.C_Client_ID1 ='12222208' AND C_Client_Division_ID1 = '6177')
     )
     
     AND
