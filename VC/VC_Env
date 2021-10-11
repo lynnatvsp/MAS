@@ -9,6 +9,8 @@ pref.primary_individual_identifier
 , gopt.client_id as Ex_VC_Global_Client_Opt_Out
 , pref.Opt_In_VC_Benefits
 , mp.Benefits_Optin
+, pref.Opt_In_VC_Envision
+, mp.Envision_Optin
 , CASE 
   WHEN a.email_address IS NOT NULL THEN '1'
   ELSE '0'
