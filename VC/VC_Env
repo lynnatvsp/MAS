@@ -5,6 +5,7 @@ pref.primary_individual_identifier
 , cd.C_Strategic_Alliance_Code1 as strategic_alliance_code
 , cd.C_Email_Source_Code1 as email_source
 , cd.C_Strategic_Business_Unit1 as sbu
+, cd.C_Date_of_Birth1 as date_of_birth
 , cd.C_Do_Not_Contact1 as do_not_contact
 , gopt.client_id as Ex_VC_Global_Client_Opt_Out
 , pref.Opt_In_VC_Benefits
