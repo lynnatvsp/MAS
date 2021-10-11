@@ -12,6 +12,10 @@ pref.primary_individual_identifier
 , pref.Opt_In_VC_Envision
 , mp.Envision_Optin
 , CASE 
+  WHEN a.email_address IS NOT NULL THEN 'A'
+  ELSE 'I'
+  END AS membership_status
+, CASE 
   WHEN a.email_address IS NOT NULL THEN '1'
   ELSE '0'
   END AS VSPActive
