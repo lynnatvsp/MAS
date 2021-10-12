@@ -82,7 +82,11 @@ FROM
 	  NOT EXISTS 
 	  (SELECT client_id 
 	  FROM [Ex_VC_Global_Client_Opt_Out] gopt
-	  WHERE  cd.C_Client_ID1 = gopt.client_id)
+	  WHERE  cd.C_Client_ID1 = gopt.client_id
+	  	AND
+		(cd.C_Client_ID1 = '12297317'
+		OR cd.C_Client_ID1 = '12297318')
+	  )
 	  )
 
 	  AND
