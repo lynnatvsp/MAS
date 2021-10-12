@@ -104,19 +104,8 @@ AND
   cd.C_Strategic_Alliance_Code1 IS NULL
 
   AND /*------------------------------DNC--------*/
-  (
-      (cd.C_Email_Source_Code1 = 'M'
-      AND
-      cd.C_Do_Not_Contact1 = '0')
-
-    OR 
     cd.C_Email_Source_Code1 = 'P'
-
-    OR
-      (cd.C_Email_Source_Code1 = 'S'
-      AND
-      cd.C_Do_Not_Contact1 = '0')
-  )
+  
   )
 
   OR
@@ -141,6 +130,9 @@ AND
     FROM [VC_Env_EloquaSend6Months] psend
     WHERE  cd.C_EmailAddress = psend.EmailAddress)
     )
+
+    AND /*------------------------------DNC--------*/
+    cd.C_Email_Source_Code1 = 'P'
   )
 
   OR
@@ -160,13 +152,35 @@ AND
     FROM [CDP_GR_Individual] a
     WHERE  cd.C_EmailAddress = a.email_address)
     )
+
+    AND /*------------------------------DNC--------*/
+    cd.C_Email_Source_Code1 = 'P'
   )
   
   OR
+  (
   /*------------------------------FED--------*/
   a.email_address IS NOT NULL /*------------Active--------*/
   
   AND
   (cd.C_Client_ID1 = '12297317'
   OR cd.C_Client_ID1 = '12297318')
+
+  AND /*------------------------------DNC--------*/
+    cd.C_Email_Source_Code1 = 'P'
+  )
+  
+  OR
+  /*------------------------------D2C--------*/
+  (
+    cd.C_Strategic_Alliance_Code1 LIKE '%INDIV%'
+    AND
+    (cd.C_Email_Source_Code1 = 'P'
+    OR
+    cd.C_Email_Source_Code1 = 'M'
+    OR
+    cd.C_Email_Source_Code1 = 'R'
+    OR
+    cd.C_Email_Source_Code1 = 'S')
+  )
 )
