@@ -84,8 +84,8 @@ FROM
 	  FROM [Ex_VC_Global_Client_Opt_Out] gopt
 	  WHERE  cd.C_Client_ID1 = gopt.client_id
 	  	AND
-		(cd.C_Client_ID1 = '12297317'
-		OR cd.C_Client_ID1 = '12297318')
+		(cd.C_Client_ID1 != '12297317'
+		AND cd.C_Client_ID1 != '12297318')
 	  )
 	  )
 
@@ -177,9 +177,6 @@ FROM
 	      FROM [CDP_GR_Individual] a
 	      WHERE  cd.C_EmailAddress = a.email_address)
 	      )
-
-	      AND /*------------------------------DNC--------*/
-	      cd.C_Email_Source_Code1 = 'P'
 	    )
 
 	    OR
