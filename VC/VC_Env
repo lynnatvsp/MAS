@@ -1,208 +1,217 @@
 SELECT
 x.primary_individual_identifier
-, x.email_address
-, x.client_id
-, x.C_Strategic_Business_Unit1
-, x.C_Email_Source_Code1
-, x.C_Do_Not_Contact1
-, x.C_Strategic_Alliance_Code1
-, x.C_Member_Coverage_Start_Date1
-, x.Opt_In_VC_Eyeconic
-, x.Eyeconic_Optin
+, x.C_EmailAddress as email_address
+, x.C_Client_ID1 as client_id
+, x.C_Strategic_Alliance_Code1 as strategic_alliance_code
+, x.C_Email_Source_Code1 as email_source
+, x.C_Strategic_Business_Unit1 as sbu
+, x.C_Date_of_Birth1 as date_of_birth
+, x.C_Do_Not_Contact1 as do_not_contact
+, x.client_id as Ex_VC_Global_Client_Opt_Out
+, x.Opt_In_VC_Benefits
+, x.Benefits_Optin
+, x.Opt_In_VC_Envision
+, x.Envision_Optin
+, x.membership_status
+, x.VSPActive
+, x.VSPPrimary
+, x.email_tag
+
 FROM 
 	(SELECT
-  pref.primary_individual_identifier
-  , cd.C_EmailAddress as email_address
-  , cd.C_Client_ID1 as client_id
-  , cd.C_Strategic_Alliance_Code1 as strategic_alliance_code
-  , cd.C_Email_Source_Code1 as email_source
-  , cd.C_Strategic_Business_Unit1 as sbu
-  , cd.C_Date_of_Birth1 as date_of_birth
-  , cd.C_Do_Not_Contact1 as do_not_contact
-  , gopt.client_id as Ex_VC_Global_Client_Opt_Out
-  , pref.Opt_In_VC_Benefits
-  , mp.Benefits_Optin
-  , pref.Opt_In_VC_Envision
-  , mp.Envision_Optin
-  , CASE 
-    WHEN a.email_address IS NOT NULL THEN 'A'
-    ELSE 'I'
-    END AS membership_status
-  , CASE 
-    WHEN a.email_address IS NOT NULL THEN '1'
-    ELSE '0'
-    END AS VSPActive
-  , CASE 
-    WHEN p.EmailAddress IS NOT NULL THEN '1'
-    ELSE '0'
-    END AS VSPPrimary
-  , CASE 
-    WHEN a.email_address IS NOT NULL
-      AND (cd.C_Client_ID1 = '12297317'
-      OR cd.C_Client_ID1 = '12297318') THEN 'FED'
-    WHEN a.email_address IS NOT NULL
-      AND ((NOT cd.C_Client_ID1 = '12297317'
-          AND NOT cd.C_Client_ID1 = '12297318')
-          OR cd.C_Client_ID1 IS NULL
-      ) THEN 'Mem'
-    WHEN a.email_address IS NULL 
-      AND cd.C_Consumer_ID1 IS NOT NULL THEN 'FMem'
-    ELSE 'Con'
-    END AS email_tag
+	  pref.primary_individual_identifier
+	  , cd.C_EmailAddress as email_address
+	  , cd.C_Client_ID1 as client_id
+	  , cd.C_Strategic_Alliance_Code1 as strategic_alliance_code
+	  , cd.C_Email_Source_Code1 as email_source
+	  , cd.C_Strategic_Business_Unit1 as sbu
+	  , cd.C_Date_of_Birth1 as date_of_birth
+	  , cd.C_Do_Not_Contact1 as do_not_contact
+	  , gopt.client_id as Ex_VC_Global_Client_Opt_Out
+	  , pref.Opt_In_VC_Benefits
+	  , mp.Benefits_Optin
+	  , pref.Opt_In_VC_Envision
+	  , mp.Envision_Optin
+	  , CASE 
+	    WHEN a.email_address IS NOT NULL THEN 'A'
+	    ELSE 'I'
+	    END AS membership_status
+	  , CASE 
+	    WHEN a.email_address IS NOT NULL THEN '1'
+	    ELSE '0'
+	    END AS VSPActive
+	  , CASE 
+	    WHEN p.EmailAddress IS NOT NULL THEN '1'
+	    ELSE '0'
+	    END AS VSPPrimary
+	  , CASE 
+	    WHEN a.email_address IS NOT NULL
+	      AND (cd.C_Client_ID1 = '12297317'
+	      OR cd.C_Client_ID1 = '12297318') THEN 'FED'
+	    WHEN a.email_address IS NOT NULL
+	      AND ((NOT cd.C_Client_ID1 = '12297317'
+		  AND NOT cd.C_Client_ID1 = '12297318')
+		  OR cd.C_Client_ID1 IS NULL
+	      ) THEN 'Mem'
+	    WHEN a.email_address IS NULL 
+	      AND cd.C_Consumer_ID1 IS NOT NULL THEN 'FMem'
+	    ELSE 'Con'
+	    END AS email_tag
+	    , ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 
-  FROM [Data_Consumer_Load] cd /*-----In Consumer Data*/
-  LEFT JOIN [CDP_GR_Individual] a /*-----and Active*/
-  ON cd.C_EmailAddress = a.email_address
-  LEFT JOIN [Eloqua_PrimaryEmails] p /*-----and Primary*/
-  on  cd.C_EmailAddress = p.EmailAddress
-  INNER JOIN [CDP_GR_Individual_Preferences] pref
-  ON cd.C_EmailAddress = pref.email_address
-  LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
-  ON cd.C_EmailAddress = mp.email_address
-  LEFT JOIN [Ex_VC_Global_Client_Opt_Out] gopt
-  ON cd.C_Client_ID1 = gopt.client_id
+	  FROM [Data_Consumer_Load] cd /*-----In Consumer Data*/
+	  LEFT JOIN [CDP_GR_Individual] a /*-----and Active*/
+	  ON cd.C_EmailAddress = a.email_address
+	  LEFT JOIN [Eloqua_PrimaryEmails] p /*-----and Primary*/
+	  on  cd.C_EmailAddress = p.EmailAddress
+	  INNER JOIN [CDP_GR_Individual_Preferences] pref
+	  ON cd.C_EmailAddress = pref.email_address
+	  LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
+	  ON cd.C_EmailAddress = mp.email_address
+	  LEFT JOIN [Ex_VC_Global_Client_Opt_Out] gopt
+	  ON cd.C_Client_ID1 = gopt.client_id
 
 
 
-  WHERE
-  /*------------------------------Opt In--------*/
-  pref.Opt_In_VC_Envision = 1
+	  WHERE
+	  /*------------------------------Opt In--------*/
+	  pref.Opt_In_VC_Envision = 1
 
-  AND
-  ( /*-----Global Client Opt Out*/
-  NOT EXISTS 
-  (SELECT client_id 
-  FROM [Ex_VC_Global_Client_Opt_Out] gopt
-  WHERE  cd.C_Client_ID1 = gopt.client_id)
-  )
+	  AND
+	  ( /*-----Global Client Opt Out*/
+	  NOT EXISTS 
+	  (SELECT client_id 
+	  FROM [Ex_VC_Global_Client_Opt_Out] gopt
+	  WHERE  cd.C_Client_ID1 = gopt.client_id)
+	  )
 
-  AND
-  ( /*-----Envision Opt Out*/
-  NOT EXISTS 
-  (SELECT email_address 
-  FROM [CDP_GR_Individual_Preferences] pref
-  WHERE  cd.C_EmailAddress = pref.email_address
-  AND pref.Opt_In_VC_Envision = 0)
-  )
+	  AND
+	  ( /*-----Envision Opt Out*/
+	  NOT EXISTS 
+	  (SELECT email_address 
+	  FROM [CDP_GR_Individual_Preferences] pref
+	  WHERE  cd.C_EmailAddress = pref.email_address
+	  AND pref.Opt_In_VC_Envision = 0)
+	  )
 
-  AND /*-----Opt Out Benefits MP*/
-  NOT EXISTS 
-  (SELECT mp.email_address 
-  FROM [VC_Subscription_Form_Page_Prod] mp
-  WHERE cd.C_EmailAddress = mp.email_address
-  AND 
-  mp.Envision_Optin = 0
-  )
+	  AND /*-----Opt Out Benefits MP*/
+	  NOT EXISTS 
+	  (SELECT mp.email_address 
+	  FROM [VC_Subscription_Form_Page_Prod] mp
+	  WHERE cd.C_EmailAddress = mp.email_address
+	  AND 
+	  mp.Envision_Optin = 0
+	  )
 
-  AND
-  (
-    /*------------------------------MEMBER--------*/
-    (
-    a.email_address IS NOT NULL /*------------Active--------*/
-    AND
-    p.EmailAddress IS NOT NULL /*------------Primary--------*/
+	  AND
+	  (
+	    /*------------------------------MEMBER--------*/
+	    (
+	    a.email_address IS NOT NULL /*------------Active--------*/
+	    AND
+	    p.EmailAddress IS NOT NULL /*------------Primary--------*/
 
-    AND /*------------------------------Consumer ID--------*/
-    cd.C_Consumer_ID1 IS NOT NULL
-    AND cd.C_Consumer_ID1 != ''
+	    AND /*------------------------------Consumer ID--------*/
+	    cd.C_Consumer_ID1 IS NOT NULL
+	    AND cd.C_Consumer_ID1 != ''
 
-    AND
-    /*------------------------------SBU--------*/
-    (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
-    OR 
-    cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
+	    AND
+	    /*------------------------------SBU--------*/
+	    (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
+	    OR 
+	    cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside')
 
-    AND /*------------------------------SA--------*/
-    cd.C_Strategic_Alliance_Code1 IS NULL
+	    AND /*------------------------------SA--------*/
+	    cd.C_Strategic_Alliance_Code1 IS NULL
 
-    AND /*------------------------------DNC--------*/
-      cd.C_Email_Source_Code1 = 'P'
+	    AND /*------------------------------DNC--------*/
+	      cd.C_Email_Source_Code1 = 'P'
 
-    )
+	    )
 
-    OR
-    /*------------------------------FORMER MEMBER--------*/
-    (
-      a.email_address IS NULL /*------------Not Active--------*/
+	    OR
+	    /*------------------------------FORMER MEMBER--------*/
+	    (
+	      a.email_address IS NULL /*------------Not Active--------*/
 
-      AND /*------------------------------Consumer ID--------*/
-      cd.C_Consumer_ID1 IS NOT NULL
-      AND cd.C_Consumer_ID1 != ''
+	      AND /*------------------------------Consumer ID--------*/
+	      cd.C_Consumer_ID1 IS NOT NULL
+	      AND cd.C_Consumer_ID1 != ''
 
-      AND
-      NOT EXISTS 
-      (SELECT a.email_address 
-      FROM [CDP_GR_Individual] a
-      WHERE  cd.C_EmailAddress = a.email_address)
+	      AND
+	      NOT EXISTS 
+	      (SELECT a.email_address 
+	      FROM [CDP_GR_Individual] a
+	      WHERE  cd.C_EmailAddress = a.email_address)
 
-      AND
-      ( /*-----Sent to previous active email*/
-      EXISTS 
-      (SELECT psend.EmailAddress 
-      FROM [VC_Env_EloquaSend6Months] psend
-      WHERE  cd.C_EmailAddress = psend.EmailAddress)
-      )
+	      AND
+	      ( /*-----Sent to previous active email*/
+	      EXISTS 
+	      (SELECT psend.EmailAddress 
+	      FROM [VC_Env_EloquaSend6Months] psend
+	      WHERE  cd.C_EmailAddress = psend.EmailAddress)
+	      )
 
-      AND /*------------------------------DNC--------*/
-      cd.C_Email_Source_Code1 = 'P'
-    )
+	      AND /*------------------------------DNC--------*/
+	      cd.C_Email_Source_Code1 = 'P'
+	    )
 
-    OR
-    /*------------------------------CONSUMER--------*/
-    (
-      (
-      a.email_address IS NULL /*------------Not Active--------*/
+	    OR
+	    /*------------------------------CONSUMER--------*/
+	    (
+	      (
+	      a.email_address IS NULL /*------------Not Active--------*/
 
-      AND /*------------------------------Consumer ID--------*/
-      cd.C_Consumer_ID1 IS NULL
-      OR cd.C_Consumer_ID1 = ''
-      )
-      AND
-      ( /*-----and not active*/
-      NOT EXISTS 
-      (SELECT a.email_address 
-      FROM [CDP_GR_Individual] a
-      WHERE  cd.C_EmailAddress = a.email_address)
-      )
+	      AND /*------------------------------Consumer ID--------*/
+	      cd.C_Consumer_ID1 IS NULL
+	      OR cd.C_Consumer_ID1 = ''
+	      )
+	      AND
+	      ( /*-----and not active*/
+	      NOT EXISTS 
+	      (SELECT a.email_address 
+	      FROM [CDP_GR_Individual] a
+	      WHERE  cd.C_EmailAddress = a.email_address)
+	      )
 
-      AND /*------------------------------DNC--------*/
-      cd.C_Email_Source_Code1 = 'P'
-    )
+	      AND /*------------------------------DNC--------*/
+	      cd.C_Email_Source_Code1 = 'P'
+	    )
 
-    OR
-    (
-    /*------------------------------FED--------*/
-    a.email_address IS NOT NULL /*------------Active--------*/
+	    OR
+	    (
+	    /*------------------------------FED--------*/
+	    a.email_address IS NOT NULL /*------------Active--------*/
 
-    AND
-    (cd.C_Client_ID1 = '12297317'
-    OR cd.C_Client_ID1 = '12297318')
+	    AND
+	    (cd.C_Client_ID1 = '12297317'
+	    OR cd.C_Client_ID1 = '12297318')
 
-    AND /*------------------------------DNC--------*/
-      cd.C_Email_Source_Code1 = 'P'
-    )
+	    AND /*------------------------------DNC--------*/
+	      cd.C_Email_Source_Code1 = 'P'
+	    )
 
-    OR
-    /*------------------------------D2C--------*/
-    (
-      cd.C_Strategic_Alliance_Code1 LIKE '%INDIV%'
+	    OR
+	    /*------------------------------D2C--------*/
+	    (
+	      cd.C_Strategic_Alliance_Code1 LIKE '%INDIV%'
 
-      AND
-      cd.C_Strategic_Business_Unit1 = 'Direct to Consumer'
+	      AND
+	      cd.C_Strategic_Business_Unit1 = 'Direct to Consumer'
 
-      AND
-        (cd.C_Email_Source_Code1 = 'P'
-        OR        
-          (cd.C_Email_Source_Code1 = 'M'
-          AND
-          cd.C_Do_Not_Contact1 = '0')
-        OR
-        cd.C_Email_Source_Code1 = 'R'
-        OR
-        cd.C_Email_Source_Code1 = 'S')
-    )
-  )
-) x
+	      AND
+		(cd.C_Email_Source_Code1 = 'P'
+		OR        
+		  (cd.C_Email_Source_Code1 = 'M'
+		  AND
+		  cd.C_Do_Not_Contact1 = '0')
+		OR
+		cd.C_Email_Source_Code1 = 'R'
+		OR
+		cd.C_Email_Source_Code1 = 'S')
+	    )
+	  )
+	) x
 WHERE
 x.RowNum = 1
 
