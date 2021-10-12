@@ -18,7 +18,6 @@ v2.email_address
 ,v2.SFMCClaimType
 , v2.Opt_In_VC_Benefits
 , v2.Benefits_Optin 
-, v2.sbu
 , v2.email_source
 
 FROM 
@@ -55,7 +54,6 @@ FROM
 	, ch.SFMCClaimType 
 	, pref.Opt_In_VC_Benefits
 	, mp.Benefits_Optin 
-	, cd.C_Strategic_Business_Unit1 as sbu
 	, cd.C_Email_Source_Code1 as email_source
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY pref.primary_individual_identifier ASC) AS RowNum
 	
