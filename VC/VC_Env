@@ -1,13 +1,13 @@
 SELECT
 x.primary_individual_identifier
-, x.C_EmailAddress as email_address
-, x.C_Client_ID1 as client_id
-, x.C_Strategic_Alliance_Code1 as strategic_alliance_code
-, x.C_Email_Source_Code1 as email_source
-, x.C_Strategic_Business_Unit1 as sbu
-, x.C_Date_of_Birth1 as date_of_birth
-, x.C_Do_Not_Contact1 as do_not_contact
-, x.client_id as Ex_VC_Global_Client_Opt_Out
+, x.email_address
+, x.client_id
+, x.strategic_alliance_code
+, x.email_source
+, x.sbu
+, x.date_of_birth
+, x.do_not_contact
+, x.Ex_VC_Global_Client_Opt_Out
 , x.Opt_In_VC_Benefits
 , x.Benefits_Optin
 , x.Opt_In_VC_Envision
