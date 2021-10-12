@@ -174,13 +174,17 @@ AND
   /*------------------------------D2C--------*/
   (
     cd.C_Strategic_Alliance_Code1 LIKE '%INDIV%'
+    
     AND
-    (cd.C_Email_Source_Code1 = 'P'
-    OR
-    cd.C_Email_Source_Code1 = 'M'
-    OR
-    cd.C_Email_Source_Code1 = 'R'
-    OR
-    cd.C_Email_Source_Code1 = 'S')
+    cd.C_Strategic_Business_Unit1 = 'Direct to Consumer'
+    
+    AND
+      (cd.C_Email_Source_Code1 = 'P'
+      OR
+      cd.C_Email_Source_Code1 = 'M'
+      OR
+      cd.C_Email_Source_Code1 = 'R'
+      OR
+      cd.C_Email_Source_Code1 = 'S')
   )
 )
