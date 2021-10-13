@@ -1,0 +1,95 @@
+%%[
+/*----------UserLookup----------*/
+set @UserLookup = LookupRows('VC_Inactive','email_address',AttributeValue('email_address'))
+set @row = row(@UserLookup, 1)
+set @SBUData = field(@row,'sbu')
+set @Client_IDData = field(@row,'client_id')
+set @DNCData = field(@row,'client_do_not_contact_ind')
+set @Email_SourceData = field(@row,'email_source')
+set @Email_TypeData = field(@row,'email_type')
+/*set @StateData = field(@row,'C_State_Prov')*/
+/*set @Client_ClassData = field(@row,'C_Client_Class_ID1')*/
+/*set @SAData = field(@row,'C_Strategic_Alliance_Code1')*/
+
+
+
+/*----------DNC - Customized per group----------*/
+if @Email_SourceData == 'membership' AND @Email_TypeData != 'portal' AND @DNCData == 'Y' then
+ set @DNC = 1
+else
+ set @DNC = 0
+endif 
+
+
+
+/*----------SBU----------*/
+if (@SBUData == 'Commercial Markets Field' OR @SBUData == 'Commercial Markets Inside') then
+ set @SBU = 0
+else
+ set @SBU = 1
+endif 
+
+
+/*----------Active----------*/
+set @active = ROWCOUNT(LOOKUPROWS('Data_Consumer_ActiveEmails','EmailAddress',AttributeValue('email_address')))
+
+/*----------Opt In Benefits (SF)----------*/
+if @OptOut_BenefitsOn == 'Y' then
+ set @OptOut_SF_Benefits = RowCount(LookupRows('CDP_GR_Individual_Preferences','email_address',AttributeValue('email_address'),'Opt_In_VC_Benefits',0))
+ set @OptOut_MP_Benefits = RowCount(LookupRows('VC_Subscription_Form_Page_Prod','email_address',AttributeValue('email_address'),'Benefits_Optin',0))
+else
+ set @OptOut_SF_Benefits = 0
+ set @OptOut_MP_Benefits = 0
+endif
+
+
+/*----------Delete Account (MP)----------*/
+set @Delete_MP = RowCount(LookupRows('VC_Subscription_Form_Page_Delete_Prod','email_address',AttributeValue('email_address')))
+
+
+/*----------Client Opt Out----------*/
+set @client_opt_out = ROWCOUNT(LOOKUPROWS('Ex_VC_Global_Client_Opt_Out','client_id', @Client_IDData))
+
+
+
+
+/*----------Add all found records----------*/
+set @totalOptOut01  = Add(@DNC, @active)
+set @totalOptOut02  = Add(@totalOptOut01, @OptOut_SF_Benefits)
+set @totalOptOut03  = Add(@totalOptOut02, @OptOut_MP_Benefits)
+set @totalOptOut04  = Add(@totalOptOut03, @Delete_MP)
+set @totalOptOut05  = Add(@totalOptOut04, @SBU)
+set @totalOptOut  = Add(@totalOptOut05, @client_opt_out)
+
+if @totalOptOut > 0 then
+ set @excludeSend = 1
+else
+ set @excludeSend = 0
+endif
+
+
+
+
+/*--------------DEBUG Ex_VC_Benefits Gen<br>
+Email_SourceData = %%=v(@Email_SourceData)=%%<br>
+DNCData = %%=v(@DNCData)=%%<br>
+SAData: %%=v(@SAData)=%%<br>
+SBUData: %%=v(@SBUData)=%%<br>
+Client_IDData: %%=v(@Client_IDData)=%%<br>
+Client_ClassData: %%=v(@Client_ClassData)=%%<br>
+StateData: %%=v(@StateData)=%%<br>
+<br>
+active: %%=v(@active)=%%<br>
+OptOut_SF_Benefits: %%=v(@OptOut_SF_Benefits)=%%<br>
+OptOut_MP_Benefits: %%=v(@OptOut_MP_Benefits)=%%<br>
+Delete_MP: %%=v(@Delete_MP)=%%<br>
+primary: %%=v(@primary)=%%<br>
+DNC: %%=v(@DNC)=%%<br>
+SBU: %%=v(@SBU)=%%<br>
+client_opt_out: %%=v(@client_opt_out)=%%<br>
+totalOptOut: %%=v(@totalOptOut)=%%<br>
+<br>------------------------*/
+
+]%%
+
+%%=v(@excludeSend)=%%
