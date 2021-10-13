@@ -6,6 +6,7 @@ v2.primary_individual_identifier
 , v2.zip
 , v2.state
 , v2.email_source
+, v2.email_type
 , v2.open_enrollment_start_date
 , v2.sbu
 , v2.client_renewal_month
@@ -40,6 +41,7 @@ FROM
 	, ina.client_id as client_id
 	, ina.std_state as state
 	, ina.email_source as email_source
+	, ina.email_type
 	, ina.open_enrollment_start_date as open_enrollment_start_date
 	, ina.sbu as sbu
 	, ina.renewal_date_adjusted_day as client_renewal_month
@@ -118,6 +120,8 @@ FROM
 	AND
 	(
 		(ina.email_source = 'Membership'
+		AND
+		ina.email_type != 'Portal'
 		AND
 		ina.client_do_not_contact_ind = 'N')
 		
