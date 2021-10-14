@@ -1,0 +1,96 @@
+%%[
+/*----------Opt In Envision (SF)----------*/
+set @OptOut_SF_01 = RowCount(LookupRows('CDP_GR_Individual_Preferences','email_address',AttributeValue('email_address'),'Opt_In_VC_Envision',0))
+
+
+
+/*----------Opt In Envision (MP)----------*/
+set @OptOut_MP_01 = RowCount(LookupRows('VC_Subscription_Form_Page_Prod','email_address',AttributeValue('email_address'),'Envision_Optin',0))
+
+
+
+/*----------Delete Account (MP)----------*/
+set @Delete_MP_01 = RowCount(LookupRows('VC_Subscription_Form_Page_Delete_Prod','email_address',AttributeValue('email_address')))
+
+
+/*----------DNC----------*/
+if (@Email_SourceData == 'M' OR @Email_SourceData == 'R') AND @DNCData == '1' then
+ set @DNC = 1
+else
+ set @DNC = 0
+endif 
+
+
+
+/*----------Client Opt Out FED Passthrough----------*/
+/*if @client_id == '12297317' then
+ set @c_out = 0
+elseif @client_id == '12297318' then
+ set @c_out = 0
+else
+ set @c_out = ROWCOUNT(LOOKUPROWS('Ex_VC_Global_Client_Opt_Out','client_id', AttributeValue('client_id')))
+endif*/
+
+
+
+/*----------Client Opt Out----------*/
+set @c_out = ROWCOUNT(LOOKUPROWS('Ex_VC_Global_Client_Opt_Out','client_id', AttributeValue('client_id')))
+
+
+
+
+/*----------Cigna and Metlife----------*/
+Var @String, @Value, @Output 
+
+Set @textCigna = "CIGNA" 
+Set @textMetlife = "METLIFE" 
+
+Set @textSA = AttributeValue('strategic_alliance_code')
+
+/* Does it match; ; if no match, output of IndexOf(1,2) will be "0" */ 
+if IndexOf(@textSA,@textCigna) > 0 then 
+    Set @cig = 1
+else 
+    Set @cig = 0
+endif 
+
+if IndexOf(@textSA,@textMetlife) > 0 then 
+    Set @met = 1
+else 
+    Set @met = 0
+endif 
+
+
+
+
+/*----------Add all found records----------*/
+set @totalOptOut01  = Add(@DNC, @OptOut_SF_01)
+set @totalOptOut02  = Add(@totalOptOut01, @OptOut_MP_01)
+set @totalOptOut03  = Add(@totalOptOut02, @Delete_MP_01)
+set @totalOptOut04  = Add(@totalOptOut03, @cig)
+set @totalOptOut05  = Add(@totalOptOut04, @met)
+set @totalOptOut  = Add(@totalOptOut05, @c_out)
+
+if @totalOptOut > 0 then
+ set @excludeSend = 1
+else
+ set @excludeSend = 0
+endif
+
+
+
+/*--------------DEBUG
+<br>
+OptOut_SF_01: %%=v(@OptOut_SF_01)=%%<br>
+OptOut_MP_01: %%=v(@OptOut_MP_01)=%%<br>
+Delete_MP_01: %%=v(@Delete_MP_01)=%%<br>
+primary: %%=v(@primary)=%%<br>
+DNC: %%=v(@DNC)=%%<br>
+c_out: %%=v(@c_out)=%%<br>
+cig: %%=v(@cig)=%%<br>
+met: %%=v(@met)=%%<br>
+totalOptOut: %%=v(@totalOptOut)=%%<br><br>
+------------------------*/
+
+]%%
+%%=v(@excludeSend)=%%
