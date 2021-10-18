@@ -9,6 +9,8 @@ x.primary_individual_identifier
 , x.zip
 , x.email_source
 , x.C_Do_Not_Contact1 
+, x.Opt_In_VC_Benefits
+, x.Benefits_Optin 
 
 FROM 
 	(SELECT
@@ -22,6 +24,8 @@ FROM
 	, cd.C_Zip_Postal as zip
 	, cd.C_Email_Source_Code1 as email_source
 	, cd.C_Do_Not_Contact1 
+	, pref.Opt_In_VC_Benefits
+	, mp.Benefits_Optin 
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY sl.primary_individual_identifier ASC) AS RowNum
 	
 	FROM _Sent s
@@ -42,43 +46,16 @@ FROM
 	ON p.EmailAddress = cd.C_EmailAddress
 	INNER JOIN [CDP_GR_Individual_Preferences] pref
 	ON cd.C_EmailAddress  = pref.email_address
+	LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
+	ON cd.C_EmailAddress = mp.[Email_Address]
 	
 	WHERE 
-	j.emailname LIKE '%_VBS%'
+	    (j.emailname LIKE '%_VBS%'
+	    OR j.emailname = 'VC_T3'
+	    OR j.emailname = 'VC_T3a')
 	AND j.emailname LIKE 'VC_%'
-	AND s.EventDate >= DATEADD(DAY, -120, GETDATE())
-	
-	AND 
-	( /*-----Previously sent*/
-	NOT EXISTS 
-	(SELECT
-    	sl.primary_individual_identifier
-    	
-    	FROM _Sent s
-    	INNER JOIN _Job j
-    	ON s.JobID = j.JobID
-    	INNER JOIN [VSP_Send_Log] sl
-    	ON s.JobID = sl.JobID
-    	AND s.SubscriberKey = sl.primary_individual_identifier
-    	AND s.BatchID = sl.BatchID
-    	AND s.JobID = sl.JobID
-    	INNER JOIN CDP_GR_Individual cdp
-    	ON sl.primary_individual_identifier = cdp.primary_individual_identifier
-    	INNER JOIN Data_Consumer_Load cd
-    	ON cdp.email_address = cd.C_EmailAddress
-    	INNER JOIN Data_Consumer_ActiveEmails a
-    	ON a.EmailAddress = cd.C_EmailAddress
-    	INNER JOIN Eloqua_PrimaryEmails p
-    	ON p.EmailAddress = cd.C_EmailAddress
-    	INNER JOIN [CDP_GR_Individual_Preferences] pref
-    	ON cd.C_EmailAddress  = pref.email_address
-    	
-    	WHERE 
-    	j.emailname LIKE '%_T3b%'
-    	AND j.emailname LIKE 'VC_%'
-    	AND s.EventDate >= DATEADD(DAY, -120, GETDATE()))
-    )
-	
+	AND s.EventDate >= DATEADD(DAY, -60, GETDATE())
+	AND NOT s.EventDate >= DATEADD(DAY, -6, GETDATE())
 	
 	AND
 	( /*-----Is opted in to Benefits in SF*/
@@ -92,6 +69,14 @@ FROM
 	FROM [VC_Subscription_Form_Page_Prod] mp
 	WHERE  cd.C_EmailAddress = mp.Email_Address
 	AND Benefits_Optin = 0)
+	)
+	
+	AND 
+	( /*-----Sent last 60 days*/
+	NOT EXISTS 
+	(SELECT sent.Email_Address
+	FROM [VC_T3b_Send_Last60Days] sent
+	WHERE  cd.C_EmailAddress = sent.Email_Address)
 	)
 	
 	AND 
