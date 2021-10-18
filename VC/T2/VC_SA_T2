@@ -147,17 +147,19 @@ FROM
 			)
 			OR
 			( /*-----SA */
-			cd.C_Strategic_Alliance_Code1 = 'GUARDIAN LIFE INSURANCE'
-			AND
-			cd.C_Email_Source_Code1 = 'P'
-			AND 
-			(cd.C_State_Prov = 'TX'
-			OR cd.C_State_Prov = 'CA')
+				cd.C_Strategic_Alliance_Code1 = 'GUARDIAN LIFE INSURANCE'
+				AND
+				cd.C_Email_Source_Code1 = 'P'
+				AND 
+				(cd.C_State_Prov = 'TX'
+				OR cd.C_State_Prov = 'CA')
+				AND
+				ch.[Email Address] IS NOT NULL
 			)
 			OR
 			( /*-----SA */
-			cd.C_Strategic_Alliance_Code1 = 'AXA EQUITABLE'
-			AND
+				cd.C_Strategic_Alliance_Code1 = 'AXA EQUITABLE'
+				AND
 				(
 				cd.C_Email_Source_Code1 = 'P'
 				OR
