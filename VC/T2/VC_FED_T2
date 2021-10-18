@@ -93,8 +93,6 @@ FROM
 	
 	
 	/*-------------Excludes--------------*/
-	AND
-	cd.C_Vision_Savings_Pass1 = 0
 		
 	
 	AND
@@ -119,13 +117,6 @@ FROM
 		FROM [Ex_SBU_Private_Exchange_Client_IDs] sa
 		WHERE  cd.C_Client_ID1 = sa.ClientID)
 	)
-	
-	
-	AND  
-	NOT EXISTS 
-	(SELECT ClientID 
-	FROM [Ex_VC_EFF_No_Promos] eff
-	WHERE  cd.C_Client_ID1 = eff.ClientID)
 	
 	
 	AND  
