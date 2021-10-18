@@ -76,11 +76,6 @@ FROM
 	(
 		(ch.SFMCClaimMonth11 = 'Y'
 		OR ch.SFMCClaimMonth12 = 'Y')
-		
-		OR
-		(
-		ch.[Email Address] IS NULL
-		)
 	)
 	
 	
@@ -101,7 +96,9 @@ FROM
 	AND
 	cd.C_Vision_Savings_Pass1 = 0
 		
-		
+	
+	AND
+	cc.[Exam Date of Service] IS NULL
 	AND
 	cc.[Frame Date of Service] IS NULL
 	AND
