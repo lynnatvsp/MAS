@@ -8,9 +8,13 @@ x.primary_individual_identifier
 , x.state
 , x.zip
 , x.email_source
-, x.C_Do_Not_Contact1 
 , x.Opt_In_VC_Benefits
 , x.Benefits_Optin 
+, x.Ex_VC_Global_Client_Opt_Out
+, x.Ex_VC_Future_Terming_Clients
+, x.VSPActive
+, x.VSPPrimary
+, x.do_not_contact
 
 FROM 
 	(SELECT
@@ -23,9 +27,19 @@ FROM
 	, cd.C_State_Prov as state
 	, cd.C_Zip_Postal as zip
 	, cd.C_Email_Source_Code1 as email_source
-	, cd.C_Do_Not_Contact1 
+	, cd.C_Do_Not_Contact1 as do_not_contact
 	, pref.Opt_In_VC_Benefits
 	, mp.Benefits_Optin 
+	, gopt.client_id as Ex_VC_Global_Client_Opt_Out
+	, term.client_id as Ex_VC_Future_Terming_Clients
+	, CASE 
+		WHEN a.EmailAddress IS NOT NULL THEN '1'
+		ELSE '0'
+	      END AS VSPActive
+	, CASE 
+		WHEN p.EmailAddress IS NOT NULL THEN '1'
+		ELSE '0'
+	      END AS VSPPrimary
 	, ROW_NUMBER() OVER(PARTITION BY cd.C_EmailAddress ORDER BY sl.primary_individual_identifier ASC) AS RowNum
 	
 	FROM _Sent s
@@ -48,6 +62,10 @@ FROM
 	ON cd.C_EmailAddress  = pref.email_address
 	LEFT JOIN [VC_Subscription_Form_Page_Prod] mp
 	ON cd.C_EmailAddress = mp.[Email_Address]
+    LEFT JOIN [Ex_VC_Global_Client_Opt_Out] gopt
+    ON cd.C_Client_ID1 = gopt.client_id
+	LEFT JOIN [Ex_VC_Future_Terming_Clients] term
+	ON cd.C_Client_ID1 = term.client_id
 	
 	WHERE 
 	    (j.emailname LIKE '%_VBS%'
