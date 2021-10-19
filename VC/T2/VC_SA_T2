@@ -84,13 +84,6 @@ FROM
 	)
 	
 	
-	AND
-	(cd.C_Email_Source_Code1 = 'M'
-	OR cd.C_Email_Source_Code1 = 'P'
-	OR cd.C_Email_Source_Code1 = 'R'
-	OR cd.C_Email_Source_Code1 = 'S')
-	
-	
 	/*-------------Excludes--------------*/
     AND
     cd.C_Strategic_Business_Unit1 = 'S. Alliance/Private Exchanges'
@@ -111,17 +104,6 @@ FROM
 	cc.[Spectacle Lens Date of Service] IS NULL
 	AND
 	cc.[Contact Lens Date of Service] IS NULL
-	
-	
-	AND NOT
-	(
-	cd.C_Do_Not_Contact1 = 1
-	AND
-		(cd.C_Email_Source_Code1 = 'M'
-		OR
-		cd.C_Email_Source_Code1 = 'R'
-		)
-	)
 	
 	
 	AND
