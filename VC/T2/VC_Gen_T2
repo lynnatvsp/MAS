@@ -73,6 +73,12 @@ FROM
 	
 	WHERE
 	
+	
+	(pref.Opt_In_VC_Benefits = '1'
+	OR
+	mp.Benefits_Optin = '1')
+	
+	AND
 	(
 		(ch.SFMCClaimMonth11 = 'Y'
 		OR ch.SFMCClaimMonth12 = 'Y')
@@ -84,19 +90,9 @@ FROM
 	)
 	
 	
-	AND
-	(cd.C_Email_Source_Code1 = 'M'
-	OR cd.C_Email_Source_Code1 = 'P'
-	OR cd.C_Email_Source_Code1 = 'R'
-	OR cd.C_Email_Source_Code1 = 'S')
-	
-	
 	/*-------------Excludes--------------*/
     AND
-    (cd.C_Strategic_Business_Unit1 = 'Commercial Markets Field'
-    OR
-    cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside'
-    )
+    cd.C_Strategic_Business_Unit1 = 'S. Alliance/Private Exchanges'
 	
 	
 	AND NOT
@@ -113,23 +109,53 @@ FROM
 	cc.[Contact Lens Date of Service] IS NULL
 	
 	
-	AND NOT
-	(
-	cd.C_Do_Not_Contact1 = 1
-	AND
-		(cd.C_Email_Source_Code1 = 'M'
-		OR
-		cd.C_Email_Source_Code1 = 'R'
-		)
-	)
-	
-	
 	AND
 	ch.SFMCClaimEligible IS NULL
 	
 	
 	AND
-	cd.C_Strategic_Alliance_Code1 IS NULL
+	
+		( /*-----Only pull in M P S R, NOT DNC M*/
+			( /*-----SA */
+				(cd.C_Strategic_Alliance_Code1 = 'AMERITAS LIFE & DENTAL'
+				OR cd.C_Strategic_Alliance_Code1 = 'KANSAS CITY LIFE INSURANCE COM')
+			AND
+				(
+				cd.C_Email_Source_Code1 = 'P'
+				OR
+				cd.C_Email_Source_Code1 = 'S'
+				OR
+				cd.C_Email_Source_Code1 = 'R'
+				OR
+				cd.C_Email_Source_Code1 = 'M'
+				)
+			)
+			OR
+			( /*-----SA */
+				cd.C_Strategic_Alliance_Code1 = 'GUARDIAN LIFE INSURANCE'
+				AND
+				cd.C_Email_Source_Code1 = 'P'
+				AND 
+				(cd.C_State_Prov = 'TX'
+				OR cd.C_State_Prov = 'CA')
+				AND
+				ch.[Email Address] IS NOT NULL
+			)
+			OR
+			( /*-----SA */
+				cd.C_Strategic_Alliance_Code1 = 'AXA EQUITABLE'
+				AND
+				(
+				cd.C_Email_Source_Code1 = 'P'
+				OR
+				cd.C_Email_Source_Code1 = 'S'
+				OR
+				cd.C_Email_Source_Code1 = 'R'
+				OR
+				cd.C_Email_Source_Code1 = 'M'
+				)
+			)
+		)
 	
 	
 	AND 
