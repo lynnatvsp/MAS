@@ -97,9 +97,6 @@ FROM
     OR
     cd.C_Strategic_Business_Unit1 = 'Commercial Markets Inside'
     )
-
-	AND
-	cd.C_Vision_Savings_Pass1 = 0
 	
 	
 	AND NOT
