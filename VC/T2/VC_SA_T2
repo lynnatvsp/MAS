@@ -73,6 +73,12 @@ FROM
 	
 	WHERE
 	
+	
+	(pref.Opt_In_VC_Benefits = '1'
+	OR
+	mp.Benefits_Optin = '1')
+	
+	AND
 	(
 		(ch.SFMCClaimMonth11 = 'Y'
 		OR ch.SFMCClaimMonth12 = 'Y')
