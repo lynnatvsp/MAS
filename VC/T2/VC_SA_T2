@@ -25,7 +25,7 @@ FROM
 	cd.C_EmailAddress as email_address
 	, pref.primary_individual_identifier
 	, cd.C_State_Prov as state
-	, cd.C_Zip_or_Postal_Code_Extension as zip
+	, cd.C_Zip_Postal as zip
 	, cd.C_Client_Class_ID1 as class_id
 	, cd.C_Vision_Savings_Pass1 as vision_savings_pass_indicator
 	, cd.C_Strategic_Alliance_Code1 as strategic_alliance_code
@@ -93,9 +93,6 @@ FROM
 	/*-------------Excludes--------------*/
     AND
     cd.C_Strategic_Business_Unit1 = 'S. Alliance/Private Exchanges'
-
-	AND
-	cd.C_Vision_Savings_Pass1 = 0
 	
 	
 	AND NOT
@@ -163,21 +160,28 @@ FROM
 	
 	AND 
 	NOT EXISTS 
-	(SELECT client_id 
+	(SELECT gopt.client_id 
 	FROM [Ex_VC_Global_Client_Opt_Out] gopt
 	WHERE  cd.C_Client_ID1 = gopt.client_id)
 	
 	
 	AND  
 	NOT EXISTS 
-	(SELECT ClientID 
+	(SELECT eff.ClientID 
 	FROM [Ex_VC_EFF_No_Promos] eff
 	WHERE  cd.C_Client_ID1 = eff.ClientID)
 	
 	
 	AND  
 	NOT EXISTS 
-	(SELECT client_id 
+	(SELECT effc.client_id  
+	FROM [EFF_ClientIDs] effc
+	WHERE  cd.C_Client_ID1 = effc.client_id )
+	
+	
+	AND  
+	NOT EXISTS 
+	(SELECT term.client_id
 	FROM [Ex_VC_Future_Terming_Clients] term
 	WHERE  cd.C_Client_ID1 = term.client_id)
 	
