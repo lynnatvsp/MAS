@@ -1,0 +1,248 @@
+%%[
+
+var @version_id
+var @retireeContact
+
+set @client_id = client_id
+set @zip = Zip
+set @state = state
+set @ab_test = AB_Test
+set @class_id = Class_ID
+set @div = div_id
+set @membership_status = membership_status
+set @email_tag = email_tag
+set @claimed = claimed
+set @date_of_birth = date_of_birth
+set @notes = notes
+set @Strategic_Alliance_Code = strategic_alliance_code
+
+
+
+/*--------------Set Birthdate if Blank--------------*/
+if @date_of_birth == '' then
+set @date_of_birth = '11/1/1850'
+else
+set @date_of_birth = date_of_birth
+endif
+
+
+/*--------------set Visionworks Zip--------------*/
+if RowCount(LookupRows('VW_Zips','zip',@zip)) then
+set @VWZip = 'Y'
+else
+set @VWZip = 'N'
+endif
+
+
+/*--------------Set Retiree--------------*/
+if DateDiff(@date_of_birth,Now(), 'Y') > 55 AND DateDiff(@date_of_birth,Now(), 'Y') < 99 then
+set @retireeContact = 'Y'
+else
+set @retireeContact = 'N'
+endif
+
+
+/*--------------set Audience --------------*/
+
+/*----FED ----*/
+if @VWZip == 'Y' and @client_id == '12297318' then
+set @version_id = 'VC_Fed_T4_Base_VW'
+
+elseif @VWZip == 'Y' and @client_id == '12297317' then
+set @version_id = 'VC_Fed_T4_High_VW'
+
+elseif @client_id == '12297318' then
+set @version_id = 'VC_Fed_T4_Base'
+
+elseif @client_id == '12297317' then
+set @version_id = 'VC_Fed_T4_High'
+
+elseif @email_tag == 'FedT' then
+set @version_id = 'VC_Fed_T4_Transactional'
+
+/*----Adidas 12129119 ----*/
+elseif @client_id == '12129119' then
+set @version_id = 'VC_VBF_Adidas_T4'
+
+/*----First Group America 30026844 ----*/
+elseif @client_id == '30026844' then
+set @version_id = 'VC_VBF_FirstGroupAmerica_T4'
+
+/*----Ventura 30018587 ----*/
+elseif @client_id == '30018587' then
+set @version_id = 'VC_TPA_T4_RET_Ventura'
+
+/*----Rhode Island 30058097 ----*/
+elseif @client_id == '30058097' then
+set @version_id = 'VC_TPA_T4_RET_RI'
+
+/*----Dow 30060393 ----*/
+elseif @client_id == '30060393' then
+set @version_id = 'VC_TPA_T4_RET_DC'
+
+/*----Archer Daniels 30027571 ----*/
+elseif @client_id == '30027571' then
+set @version_id = 'VC_TPA_T4_RET_ArcherDan'
+
+/*----Intl Paper Added Benefits 30021299 ----*/
+elseif @client_id == '30021299' then
+set @version_id = 'VC_TPA_T4_RET_IntPaper'
+
+/*----Ivy Tech Community College 30013275----*/
+elseif @client_id == '30013275' then
+set @version_id = 'VC_TPA_T4_GEN_IVY'
+
+/*----Whirlpool: 12243232----*/
+elseif @client_id == '12243232' then
+set @version_id = 'VC_VBF_Whirlpool_T4'
+
+/*----Securian: 30011406----*/
+elseif @client_id == '30011406' then
+set @version_id = 'VC_VBF_Securian_T4'
+
+/*----Oregon Health Science University: 12157430----*/
+elseif @client_id == '12157430' then
+set @version_id = 'VC_VBF_Oregon_T4'
+
+elseif @email_tag == 'AONBronze' then
+set @version_id = 'VC_AON_BRONZE_BUYUP_T4'
+
+elseif @email_tag == 'AONSilver' then
+set @version_id = 'VC_AON_SILVER_BUYUP_T4'
+
+elseif @email_tag == 'AONGold' then
+set @version_id = 'VC_AON_GOLD_BUYUP_T4'
+
+elseif @claimed == 'Y' AND @email_tag == 'AON' then
+set @version_id = 'VC_AON_T4_Gen'
+
+elseif @claimed == '' AND @email_tag == 'AON' then
+set @version_id = 'VC_AON_T4_NOC'
+
+elseif @client_id == '12222208' AND (@div >= '1001' AND @div <= '1177') then
+set @version_id = 'VC_CSW_T4_SAP'
+
+elseif @client_id == '12222208' AND (@div >= '6001' AND @div <= '6177') then
+set @version_id = 'VC_CSW_T4_SAP_BUYUP'
+
+elseif @client_id == '30052010' OR @client_id == '30058000' then
+set @version_id = 'VC_TPA_T4_RET_SOC'
+
+elseif @client_id == '30052011' OR @client_id == '30034581' then
+set @version_id = 'VC_TPA_T4_GEN_SOC'
+
+elseif @client_id == '30078083' OR @client_id == '30059425' then
+set @version_id = 'VC_TPA_T4_RET_CSU'
+
+elseif @client_id == '12288167' then
+set @version_id = 'VC_TPA_T4_RET_United'
+
+elseif @client_id == '30018587' then
+set @version_id = 'VC_TPA_T4_RET_Merced'
+
+elseif @claimed == 'Y' AND @email_tag == 'PE' then
+set @version_id = 'VC_PE_T4_Gen'
+
+elseif @claimed == '' AND @email_tag == 'PE' then
+set @version_id = 'VC_PE_T4_NOC'
+
+elseif @email_tag == 'BuyUp' then
+set @version_id = 'VC_Gen_T4_Buy_Up'
+
+elseif @email_tag == 'Pot' then
+set @version_id = 'VC_Potentials_T4'
+
+elseif @Strategic_Alliance_Code == 'AMERITAS LIFE & DENTAL' then
+set @version_id = 'VC_SA_T4_Ameritas'
+
+elseif @Strategic_Alliance_Code == 'KANSAS CITY LIFE INSURANCE COM' then
+set @version_id = 'VC_SA_T4_KCL'
+
+elseif @Strategic_Alliance_Code == 'AXA Equitable' then
+set @version_id = 'VC_SA_T4_Equitable'
+
+elseif @Strategic_Alliance_Code == 'GUARDIAN LIFE INSURANCE' then
+set @version_id = 'VC_SA_T4_Guardian'
+
+elseif @retireeContact == 'Y' AND @claimed == '' then
+set @version_id = 'VC_Gen_T4_NOC_Ret'
+
+elseif @retireeContact == 'Y' AND @claimed == 'Y' then
+set @version_id = 'VC_Gen_T4_Ret'
+
+elseif @retireeContact == 'N' AND @claimed == 'Y' then
+set @version_id = 'VC_Gen_T4'
+
+else
+set @version_id = 'VC_Gen_T4_NOC'
+endif  
+
+ContentBlockbyKey(@version_id)
+
+
+/*--------------Set Super Secret GA UTM Code--------------*/
+set @utmSource = 'vcessential'
+set @utmCampaign = @version_id
+set @utmVsp = concat('utm_medium=email&utm_source=', @utmSource, '&utm_campaign=', @version_id)
+ContentBlockbyKey('f_vcGaUtmV2') <<<<<<<<<<<< Change that to f_vcGaUtmV2
+
+
+/*--------------Add UTMs to links--------------*/
+set @urlNoUtm = @cobrUrl 
+ContentBlockbyKey('f_urlUtm')
+set @cobrUrl = @urlUtm
+
+set @urlNoUtm = @logoUrl
+ContentBlockbyKey('f_urlUtm')
+set @logoUrl = @urlUtm
+
+set @urlNoUtm = @navButton1Url
+ContentBlockbyKey('f_urlUtm')
+set @navButton1Url = @urlUtm
+
+set @urlNoUtm = @navButton2Url
+ContentBlockbyKey('f_urlUtm')
+set @navButton2Url = @urlUtm
+
+set @urlNoUtm = @navButton3Url
+ContentBlockbyKey('f_urlUtm')
+set @navButton3Url = @urlUtm
+
+set @urlNoUtm = @heroButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @heroButtonUrl = @urlUtm
+
+set @urlNoUtm = @mod1ButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @mod1ButtonUrl = @urlUtm
+
+set @urlNoUtm = @mod2ButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @mod2ButtonUrl = @urlUtm
+
+set @urlNoUtm = @mod3ButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @mod3ButtonUrl = @urlUtm
+
+
+/*--------------Add UTMs to links found in text, add html to reg mark, etc.--------------*/
+set @contentInlineLink = @heroText
+ContentBlockbyKey('f_urlInContentUtm')
+set @heroText = @contentInlineLinkUtm
+
+set @contentInlineLink = @mod1Text
+ContentBlockbyKey('f_urlInContentUtm')
+set @mod1Text = @contentInlineLinkUtm
+
+set @contentInlineLink = @mod2Text
+ContentBlockbyKey('f_urlInContentUtm')
+set @mod2Text = @contentInlineLinkUtm
+
+set @contentInlineLink = @mod3Text
+ContentBlockbyKey('f_urlInContentUtm')
+set @mod3Text = @contentInlineLinkUtm
+  
+]%%
+
+
+%%=TreatAsContent(concat("%", "%=BeginImpressionRegion('", @version_id, "')=%", "%"))=%%
