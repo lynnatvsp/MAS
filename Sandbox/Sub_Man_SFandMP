@@ -1,0 +1,19 @@
+SELECT
+sf.Email_Address
+, sf.Opt_In_VC_Benefits 
+, convert(varchar, convert(date, sf.Opt_In_VC_Benefits_Date, 105), 101) AS Opt_In_VC_Benefits_Date 
+, convert(varchar, convert(date, sf.Opt_Out_VC_Benefits_Date, 105), 101) AS Opt_Out_VC_Benefits_Date 
+, mp.Benefits_Optin
+, convert(varchar, convert(date, mp.Updated_Date, 105), 101) AS Updated_Date 
+
+FROM CDP_GR_Individual_Preferences sf
+LEFT JOIN VC_Subscription_Form_Page_Prod mp
+ON sf.Email_Address  = mp.Email_Address
+
+WHERE
+(sf.Opt_In_VC_Benefits = 1
+AND mp.Benefits_Optin = 0)
+
+OR
+(sf.Opt_In_VC_Benefits = 0
+AND mp.Benefits_Optin = 1)
