@@ -1,0 +1,154 @@
+
+SELECT
+t1.primary_individual_identifier
+,t1.client_id
+,t1.strategic_alliance_code
+,t1.do_not_contact_member_indicator
+,t1.client_opt_out_all_marketing
+,t1.class_id
+,t1.date_of_birth
+,t1.membership_status
+,t1.email_source
+,t1.email_address
+,t1.first_name
+,t1.last_name
+,t1.original_vsp_sub_eff_date
+,t1.member_coverage_code
+,t1.policy_start_dt
+,t1.email_type
+,t1.Client_Renewal_Month
+,t1.Opt_In_VC_Benefits
+,t1.Benefits_Optin
+,t1.primary_address_street	
+,t1.primary_address_street_2
+,t1.primary_address_city
+,t1.state	
+,t1.zip
+,t1.primary_address_zip_4
+,t1.primary_mailing_address
+,t1.sbu
+
+
+FROM
+    (SELECT
+    cdp.primary_individual_identifier AS primary_individual_identifier
+    ,cdp.client_id AS client_id
+    ,cdp.strategic_alliance_code AS strategic_alliance_code
+    ,cdp.do_not_contact_member_indicator AS do_not_contact_member_indicator
+	,cdp.client_opt_out_all_marketing AS client_opt_out_all_marketing
+    ,cdp.class_id AS class_id
+    ,cdp.date_of_birth AS date_of_birth
+    ,cdp.membership_status AS membership_status
+    ,cdp.email_source AS email_source
+    ,cdp.email_address AS email_address
+    ,cdp.first_name AS first_name
+    ,cdp.last_name AS last_name
+    ,cdp.original_vsp_sub_eff_date AS original_vsp_sub_eff_date
+    ,cdp.policy_coverage_code AS member_coverage_code
+    ,cdp.policy_start_dt AS policy_start_dt
+    ,cdp.email_type AS email_type
+    ,cdp.renewal_date_adjusted_day AS Client_Renewal_Month
+	,cdp.primary_address_street	AS primary_address_street
+	,cdp.primary_address_street_2 AS primary_address_street_2
+	,cdp.primary_address_city AS primary_address_city
+	,cdp.primary_address_zip AS zip
+	,cdp.primary_address_state	AS state
+	,cdp.primary_address_zip_4 AS primary_address_zip_4
+	,CONCAT(cdp.primary_address_street, ' '	
+		,cdp.primary_address_street_2, ' '
+		,cdp.primary_address_city, ' '	
+		,cdp.primary_address_state, ' '	
+		,cdp.primary_address_zip) AS primary_mailing_address
+	,cdp.sbu AS sbu
+	,pref.Opt_In_VC_Benefits AS Opt_In_VC_Benefits
+	,mp.Benefits_Optin AS Benefits_Optin
+    ,ROW_NUMBER() OVER(PARTITION BY cdp.email_address ORDER BY pref.primary_individual_identifier ASC) AS RowNum
+    
+    FROM CDP_GR_Individual cdp /*-----Back to CDP meow*/
+	
+    INNER JOIN [CDP_GR_Individual_Preferences] pref ON cdp.email_address = pref.email_address
+    LEFT JOIN [VC_Subscription_Form_Page_Prod] mp /*-----Member Portal Subs*/ ON cdp.email_address = mp.[Email_Address]
+
+
+
+
+LEFT JOIN [VC_T1_CustomClients] cus
+    ON cdp.client_id = cus.clientid
+
+    /*VIP exlude*/
+    LEFT JOIN [Ex_VC_EFF_No_Promos] np
+    ON cdp.client_id = np.ClientID
+
+    LEFT JOIN [Ex_VC_VIP] vip
+    ON cdp.email_address = vip.email_address
+    
+
+    
+WHERE 
+
+
+ 
+cus.clientid IS NULL
+
+AND vip.email_address IS NULL
+
+AND np.ClientID IS NULL  
+
+AND cdp.membership_status = 'A'
+
+AND sbu LIKE 'Commercial%' 
+  
+AND cdp.strategic_alliance_code IS NULL
+
+
+
+AND
+	(cdp.email_source = 'portal'
+	 OR (cdp.email_source = 'membership' AND NOT cdp.email_type = 'portal' AND cdp.do_not_contact_member_indicator = 'N'))
+		    
+AND NOT cdp.client_id = '112023569'
+AND NOT (cdp.client_id = '12101422' AND cdp.class_id = '0014')
+AND NOT cdp.client_id = '30079492'
+AND NOT cdp.client_id = '12130213'
+AND NOT	cdp.client_id = '12006223'
+	
+  
+ AND
+(
+/*-----Client Renewal Month = current month*/
+(MONTH(renewal_date_adjusted_day) = MONTH(getdate())
+  AND
+    cdp.original_vsp_sub_eff_date < GETDATE())
+
+
+    OR
+    (cdp.original_vsp_sub_eff_date >= DATEADD(DAY, -40, GETDATE())
+    AND
+    cdp.original_vsp_sub_eff_date < GETDATE()
+    ))
+
+    AND ( /*-----Is opted in to Benefits in SF*/ pref.Opt_In_VC_Benefits = 1 )
+    AND ( /*-----MP Opt Out*/ NOT EXISTS
+    (SELECT mp.Email_Address
+    FROM [VC_Subscription_Form_Page_Prod] mp
+    WHERE cdp.email_address = mp.Email_Address AND Benefits_Optin = 0) )
+    AND ( /*-----Future Terming Client*/ NOT EXISTS
+    (SELECT term.client_id
+    FROM [Ex_VC_Future_Terming_Clients] term
+    WHERE cdp.client_id = term.client_id) )
+    AND ( /*-----Global Client Opt Out*/ NOT EXISTS
+    (SELECT gopt.client_id
+    FROM [Ex_VC_Global_Client_Opt_Out] gopt
+    WHERE cdp.client_id = gopt.client_id) )
+    AND ( /*-----Not sent in last 45 Days*/ NOT EXISTS
+    (SELECT l.email_address
+    FROM [VC_T1_SFMCSend_Last45Days] l
+    WHERE cdp.email_address = l.email_address) ) 
+	) t1
+	
+    WHERE RowNum = 1 AND NOT EXISTS
+    (SELECT SubscriberKey
+    FROM [_bounce] b
+    WHERE primary_individual_identifier = b.SubscriberKey
+    AND (b.BOUNCECATEGORY = 'Hard bounce' OR b.BOUNCECATEGORY = 'Block bounce' ) )
+
