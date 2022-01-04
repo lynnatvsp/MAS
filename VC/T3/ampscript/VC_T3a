@@ -1,0 +1,644 @@
+
+    <!-- Custom Head Code -->
+%%[
+
+var @version_id
+var @VWZip
+var @vbs
+
+set @First_Name = first_name
+set @Last_Name = last_name
+set @client_id = client_id
+set @zip = zip
+set @state = state
+set @ab_test = AB_Test
+set @Strategic_Alliance_Code = strategic_alliance_code 
+set @class_id = class_id
+set @member_coverage_code = member_coverage_code
+set @notes = notes
+set @vbs = 'a' 
+
+
+
+/*--------------set Visionworks Zip--------------*/
+if RowCount(LookupRows('VW_Zips','zip',@zip)) then
+set @VWZip = 'Y'
+else
+set @VWZip = 'N'
+endif
+
+
+/*--------------set Audience--------------*/
+if (@client_id == '12297318' OR @client_id == '12297317') AND @vbs == 'a' then
+set @version_id = 'VC_Fed_T3'
+
+elseif (@client_id == '12297318' OR @client_id == '12297317') AND @vbs == 'b' then
+set @version_id = 'VC_Fed_T3b'
+
+elseif @Strategic_Alliance_Code == 'GUARDIAN LIFE INSURANCE' AND @vbs == 'a' AND (@state == 'TX' or @state == 'CA') then
+set @version_id = 'VC_Guardian_T3'
+
+elseif @Strategic_Alliance_Code == 'GUARDIAN LIFE INSURANCE' AND @vbs == 'b' AND (@state == 'TX' or @state == 'CA') then
+set @version_id = 'VC_Guardian_T3b'
+
+elseif @Strategic_Alliance_Code == 'AMERITAS LIFE & DENTAL' AND @vbs == 'a' then
+set @version_id = 'VC_Ameritas_T3'
+
+elseif @Strategic_Alliance_Code == 'AMERITAS LIFE & DENTAL' AND @vbs == 'b' then
+set @version_id = 'VC_Ameritas_T3b'
+
+elseif @Strategic_Alliance_Code == 'AXA Equitable' AND @vbs == 'a' then
+set @version_id = 'VC_Equitable_T3'
+
+elseif @Strategic_Alliance_Code == 'AXA Equitable' AND @vbs == 'b' then
+set @version_id = 'VC_Equitable_T3b'
+
+elseif (@Strategic_Alliance_Code == 'KANSAS CITY LIFE INSURANCE COM' AND @vbs == 'a') then
+set @version_id = 'VC_KCL_T3'
+
+elseif (@Strategic_Alliance_Code == 'KANSAS CITY LIFE INSURANCE COM' AND @vbs == 'b') then
+set @version_id = 'VC_KCL_T3b'
+
+elseif @vbs == 'a' then
+set @version_id = 'VC_Gen_T3'
+
+else
+set @version_id = 'VC_Gen_T3b'
+endif
+
+ContentBlockbyKey(@version_id)
+
+
+/*--------------Set Super Secret GA UTM Code--------------*/
+set @utmSource = 'vcessential'
+set @utmCampaign = @version_id
+set @utmVsp = concat('utm_medium=email&utm_source=', @utmSource, '&utm_campaign=', @version_id)
+ContentBlockbyKey('f_vcGaUtmV2') <<<<<<<<<<<< Change that to f_vcGaUtmV2
+
+/*--------------Add UTMs to links--------------*/
+set @urlNoUtm = @cobrUrl 
+ContentBlockbyKey('f_urlUtm')
+set @cobrUrl = @urlUtm
+
+set @urlNoUtm = @logoUrl
+ContentBlockbyKey('f_urlUtm')
+set @logoUrl = @urlUtm
+
+set @urlNoUtm = @navButton1Url
+ContentBlockbyKey('f_urlUtm')
+set @navButton1Url = @urlUtm
+
+set @urlNoUtm = @navButton2Url
+ContentBlockbyKey('f_urlUtm')
+set @navButton2Url = @urlUtm
+
+set @urlNoUtm = @navButton3Url
+ContentBlockbyKey('f_urlUtm')
+set @navButton3Url = @urlUtm
+
+set @urlNoUtm = @heroButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @heroButtonUrl = @urlUtm
+
+set @urlNoUtm = @mod1ButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @mod1ButtonUrl = @urlUtm
+
+set @urlNoUtm = @mod2ButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @mod2ButtonUrl = @urlUtm
+
+set @urlNoUtm = @mod3ButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @mod3ButtonUrl = @urlUtm
+
+
+/*--------------Add UTMs to links found in text, add html to reg mark, etc.--------------*/
+set @contentInlineLink = @heroText
+ContentBlockbyKey('f_urlInContentUtm')
+set @heroText = @contentInlineLinkUtm
+
+set @contentInlineLink = @mod1Text
+ContentBlockbyKey('f_urlInContentUtm')
+set @mod1Text = @contentInlineLinkUtm
+
+set @contentInlineLink = @mod2Text
+ContentBlockbyKey('f_urlInContentUtm')
+set @mod2Text = @contentInlineLinkUtm
+
+set @contentInlineLink = @mod3Text
+ContentBlockbyKey('f_urlInContentUtm')
+set @mod3Text = @contentInlineLinkUtm
+
+
+
+
+/*------------ T3 Send Log Start----------*/
+set @sendLogStatus = 'Y' /*------------ Set to Y before sending, Set to N while testing----------*/
+
+if @sendLogStatus == 'Y' then
+  if not (empty(jobid)) then
+  set @tsdid = Lookup("_Job", "TriggererSendDefinitionObjectID", "JobID", jobid)
+  set @journey_version_id = Lookup("_JourneyActivity", "VersionID", "JourneyActivityObjectID", @tsdid)
+  set @journey_name = Lookup("_Journey", "JourneyName", "VersionID", @journey_version_id)
+
+  
+  /*var @version_id*/
+  var @email_address
+  var @email_name
+
+  set @email_address = email_address
+  set @email_name = emailname_
+
+  UpdateDE("VC_SA_T3_VBS_Entry", 1 ,"email_address", @email_address, "version_id", @version_id, "email_name", @email_name, "journey_name", @journey_name)
+
+
+  set @CLAIM_NUMBER_PLUS_EXT = CLAIM_NUMBER_PLUS_EXT
+  set @DATE_OF_NOTICE = DATE_OF_NOTICE
+  if @DATE_OF_NOTICE == '' then
+   set @DATE_OF_NOTICE = '1/1/1800'
+  endif
+  set @DATE_OF_SERVICE = DATE_OF_SERVICE
+  if @DATE_OF_SERVICE == '' then
+   set @DATE_OF_SERVICE = '1/1/1800'
+  endif
+  set @RECIPIENT_STATE = RECIPIENT_STATE
+  set @CLIENT_ID = CLIENT_ID
+  set @CLIENT_DIVISION_ID = CLIENT_DIVISION_ID
+  set @CLIENT_NAME = CLIENT_NAME
+  set @GROUP_POPULATION_CODE = GROUP_POPULATION_CODE
+  set @TOTAL_AMOUNT_SAVED = TOTAL_AMOUNT_SAVED
+  set @NETWORK_FLAG = NETWORK_FLAG
+  set @BENEFIT_TYPE_CODE = BENEFIT_TYPE_CODE
+  set @CLAIM_LENS_CODE = CLAIM_LENS_CODE
+  set @CUSTOMER_SERVICE_PHONE_NUMBER = CUSTOMER_SERVICE_PHONE_NUMBER
+  set @VBS_LOGO_CODE = VBS_LOGO_CODE
+  set @STRATIGIC_ALLIANCE_CD = STRATIGIC_ALLIANCE_CD
+  set @EXPANDED_MEMBER_ID = EXPANDED_MEMBER_ID
+  set @ACCOUNT_1_CODE = ACCOUNT_1_CODE
+  set @EMAIL_SOURCE_CODE = EMAIL_SOURCE_CODE
+  set @UNIQUE_CLAIM_NUMBER = UNIQUE_CLAIM_NUMBER
+  set @CLM_PD_DT = CLM_PD_DT
+  set @CONSUMER_ID = CONSUMER_ID
+  set @CLM_EXT_NBR = CLM_EXT_NBR
+  set @SUBSCRIBER_FIRST_NAME = SUBSCRIBER_FIRST_NAME
+  set @SUBSCRIBER_LAST_NAME = SUBSCRIBER_LAST_NAME
+  set @CLMLN_DISCOUNTS_AMT = CLMLN_DISCOUNTS_AMT
+  set @DAYS_TO_WAIT = DAYS_TO_WAIT
+  set @CLM_TotalSavings = CLM_TotalSavings
+  set @R_Entered_Campaign = R_Entered_Campaign
+  if @R_Entered_Campaign == '' then
+   set @R_Entered_Campaign = '1/1/1800'
+  endif
+  set @R_Hardbounce = R_Hardbounce
+  if @R_Hardbounce == '' then
+   set @R_Hardbounce = '1/1/1800'
+  endif
+  set @R_Unsubsribed = R_Unsubsribed
+  if @R_Unsubsribed == '' then
+   set @R_Unsubsribed = '1/1/1800'
+  endif
+  set @R_Business_Exclude = R_Business_Exclude
+  if @R_Business_Exclude == '' then
+   set @R_Business_Exclude = '1/1/1800'
+  endif
+  set @R_NoMatch = R_NoMatch
+  if @R_NoMatch == '' then
+   set @R_NoMatch = '1/1/1800'
+  endif
+  set @primary_individual_identifier = primary_individual_identifier
+  set @EMAIL = EMAIL
+  set @C_Vision_Savings_Pass1 = C_Vision_Savings_Pass1
+  set @Strategic_Alliance_Code = Strategic_Alliance_Code
+  set @State = State
+  set @zip = zip
+  set @ab_test = ab_test
+  set @member_coverage_code = member_coverage_code
+  set @notes = notes
+  set @class_id = class_id
+  set @membership_status = membership_status
+  set @date_of_birth = date_of_birth
+  if @date_of_birth == '' then
+   set @date_of_birth = '1/1/1800'
+  endif
+  set @first_name = first_name
+  set @last_name = last_name
+  set @parent_indicator = parent_indicator
+  set @Eligible_For_Materials_Ind = Eligible_For_Materials_Ind
+  set @Eligible_For_Exam_Ind = Eligible_For_Exam_Ind
+  set @email_source = email_source
+  set @email_address = email_address
+  /*set @Opt_In_VC_Benefits = Opt_In_VC_Benefits
+  set @Benefits_Optin = Benefits_Optin
+  set @Ex_VC_Global_Client_Opt_Out = Ex_VC_Global_Client_Opt_Out
+  set @Ex_VC_Future_Terming_Clients = Ex_VC_Future_Terming_Clients
+  set @VSPActive = VSPActive
+  set @VSPPrimary = VSPPrimary
+  set @do_not_contact = do_not_contact*/
+
+
+  InsertDE("VC_T3_Send_Log"
+  ,"EMAIL", @EMAIL
+  ,"CLAIM_NUMBER_PLUS_EXT", @CLAIM_NUMBER_PLUS_EXT
+  ,"DATE_OF_NOTICE", @DATE_OF_NOTICE
+  ,"DATE_OF_SERVICE", @DATE_OF_SERVICE
+  ,"RECIPIENT_STATE", @RECIPIENT_STATE
+  ,"CLIENT_ID", @CLIENT_ID
+  ,"CLIENT_DIVISION_ID", @CLIENT_DIVISION_ID
+  ,"CLIENT_NAME", @CLIENT_NAME
+  ,"GROUP_POPULATION_CODE", @GROUP_POPULATION_CODE
+  ,"TOTAL_AMOUNT_SAVED", @TOTAL_AMOUNT_SAVED
+  ,"NETWORK_FLAG", @NETWORK_FLAG
+  ,"BENEFIT_TYPE_CODE", @BENEFIT_TYPE_CODE
+  ,"CLAIM_LENS_CODE", @CLAIM_LENS_CODE
+  ,"CUSTOMER_SERVICE_PHONE_NUMBER", @CUSTOMER_SERVICE_PHONE_NUMBER
+  ,"VBS_LOGO_CODE", @VBS_LOGO_CODE
+  ,"STRATIGIC_ALLIANCE_CD", @STRATIGIC_ALLIANCE_CD
+  ,"EXPANDED_MEMBER_ID", @EXPANDED_MEMBER_ID
+  ,"ACCOUNT_1_CODE", @ACCOUNT_1_CODE
+  ,"EMAIL_SOURCE_CODE", @EMAIL_SOURCE_CODE
+  ,"UNIQUE_CLAIM_NUMBER", @UNIQUE_CLAIM_NUMBER
+  ,"CLM_PD_DT", @CLM_PD_DT
+  ,"CONSUMER_ID", @CONSUMER_ID
+  ,"CLM_EXT_NBR", @CLM_EXT_NBR
+  ,"SUBSCRIBER_FIRST_NAME", @SUBSCRIBER_FIRST_NAME
+  ,"SUBSCRIBER_LAST_NAME", @SUBSCRIBER_LAST_NAME
+  ,"CLMLN_DISCOUNTS_AMT", @CLMLN_DISCOUNTS_AMT
+  ,"DAYS_TO_WAIT", @DAYS_TO_WAIT
+  ,"CLM_TotalSavings", @CLM_TotalSavings
+  ,"R_Entered_Campaign", @R_Entered_Campaign
+  ,"R_Hardbounce", @R_Hardbounce
+  ,"R_Unsubsribed", @R_Unsubsribed
+  ,"R_Business_Exclude", @R_Business_Exclude
+  ,"R_NoMatch", @R_NoMatch
+  ,"primary_individual_identifier", @primary_individual_identifier
+  ,"C_Vision_Savings_Pass1", @C_Vision_Savings_Pass1
+  ,"Strategic_Alliance_Code", @Strategic_Alliance_Code
+  ,"State", @State
+  ,"zip", @zip
+  ,"ab_test", @ab_test
+  ,"member_coverage_code", @member_coverage_code
+  ,"notes", @notes
+  ,"class_id", @class_id
+  ,"membership_status", @membership_status
+  ,"date_of_birth", @date_of_birth
+  ,"first_name", @first_name
+  ,"last_name", @last_name
+  ,"parent_indicator", @parent_indicator
+  ,"Eligible_For_Materials_Ind", @Eligible_For_Materials_Ind
+  ,"Eligible_For_Exam_Ind", @Eligible_For_Exam_Ind
+  ,"email_source", @email_source
+  ,"email_address", @email_address
+  ,"campaign", @campaign
+  ,"email_name", @email_name
+  ,"journey_name", @journey_name
+  ,"version_id", @version_id
+  )
+  endif
+endif
+  
+/*------------ T3 Send Log END----------*/
+  
+]%%
+
+%%=TreatAsContent(concat("%", "%=BeginImpressionRegion('", @version_id, "')=%", "%"))=%%
+  <!-- Custom Head Code /-->
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<style type="text/css">
+ReadMsgBody {
+    width: 100%;
+}
+.ExternalClass {
+    width: 100%;
+}
+.ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div {
+    line-height: 100%;
+}
+body {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    margin: 0 !important;
+}
+p {
+    margin: 1em 0;
+}
+table td {
+    border-collapse: collapse;
+}
+img {
+    outline: 0;
+}
+a img {
+    border: none;
+}
+a:link {
+    color: #00aeff;
+    font-weight: bold;
+    text-decoration: none;
+}
+a:visited {
+    color: #00aeff;
+    font-weight: bold;
+    text-decoration: none;
+}
+a:hover {
+    color: #8D8D8D;
+    font-weight: bold;
+    text-decoration: none;
+}  
+.navMenu {
+    font-size: 13px;
+    font-family: arial, sans-serif;
+    padding: 0;
+    margin: 0;
+}  
+@-ms-viewport {
+width: device-width;
+}
+</style>
+<style type="text/css">
+@media only screen and (max-width: 480px) {
+.container {
+    width: 100% !important;
+}
+.footer {
+    width: auto !important;
+    margin-left: 0;
+}
+.mobile-hidden {
+    display: none !important;
+}
+.logo {
+    display: block !important;
+    padding: 0 !important;
+}
+img {
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: auto !important;
+}
+.header img {
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: auto !important;
+}
+.photo img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+}
+.drop {
+    display: block !important;
+    width: 100% !important;
+    float: left;
+    clear: both;
+}
+.footerlogo {
+    display: block !important;
+    width: 100% !important;
+    padding-top: 15px;
+    float: left;
+    clear: both;
+}
+.nav4, .nav5, .nav6 {
+    display: none !important;
+}
+.tableBlock {
+    width: 100% !important;
+}
+.responsive-td {
+    width: 100% !important;
+    display: block !important;
+    padding: 0 !important;
+}
+.fluid, .fluid-centered {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+.fluid-centered {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+ .drop {
+    display: block !important;
+    width: 100% !important;
+    float: left;
+    clear: both;
+}
+.textAlignCenter {
+   text-align: center !important;
+}
+.textAlignRight {
+   text-align: right !important;
+}  
+ .textAlignleft {
+   text-align: left !important;
+}
+/* MOBILE GLOBAL STYLES - DO NOT CHANGE */
+body, .tb_properties{font-family: Arial !important; font-size: 16px !important; color: #000000 !important; line-height: 1.5 !important; padding: 0px !important; }.buttonstyles{font-family: Arial, helvetica, sans-serif !important; font-size: 16px !important; color: #FFFFFF !important; padding: 10px !important; }h1{font-family: Arial !important; font-size: 40px !important; color: #0C0C0C !important; line-height: 1 !important; }h2{font-family: Arial !important; font-size: 20px !important; color: #0C0C0C !important; line-height: 1 !important; }h3{font-family: Arial !important; font-size: 18px !important; color: #0C0C0C !important; line-height: 1 !important; }a:not(.buttonstyles){line-height: 1 !important; }.mobile-hidden{display: none !important; }.responsive-td {width: 100% !important; display: block !important; padding: 0 !important;}
+/* END OF MOBILE GLOBAL STYLES - DO NOT CHANGE */
+}
+
+@media only screen and (max-width: 640px) {
+.container {
+    width: 100% !important;
+}
+.mobile-hidden {
+    display: none !important;
+}
+.logo {
+    display: block !important;
+    padding: 0 !important;
+}
+.photo img {
+    width: 100% !important;
+    height: auto !important;
+}
+.nav5, .nav6 {
+    display: none !important;
+}
+.fluid, .fluid-centered {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+.fluid-centered {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+}
+</style>
+<!--[if mso]>
+      <style type="text/css">
+          /* Begin Outlook Font Fix */
+              body, table, td {
+                 font-family : Arial, helvetica, sans-serif;
+                 line-height : 115%;
+                 font-size : 16px;
+                 color : #000000;
+              }
+          /* End Outlook Font Fix */
+      </style>
+    <![endif]-->
+</head><body bgcolor="#F9F9F9" text="#808080" style="margin: 0px; -webkit-text-size-adjust:none;background-color : #F9F9F9; font-family : Arial, helvetica, sans-serif; line-height : 115%; font-size : 16px; color : #000000; padding : 0px; ">
+<div style="font-size:0; line-height:0;">
+  <custom name="opencounter" type="tracking">
+  <custom name="usermatch" type="tracking" />
+</div>
+
+<!-- Main Wrapper -->
+<table width="100%" border="0" cellpadding="0" cellspacing="0" align="center">
+    <tr>
+    <td align="center"><!-- Inner Wrapper -->
+      
+      <table cellspacing="0" cellpadding="0" border="0" width="660" class="container" align="center">
+        <tr>
+          <td><table class="tb_properties border_style" style="background-color : #FFFFFF; border : 0px solid transparent;font-size : 16px; font-family : Arial, helvetica, sans-serif; line-height : 115%; color : #000000; " cellspacing="0" cellpadding="0" bgcolor="#FFFFFF" width="100%">
+              <tr>
+                <td align="center" valign="top"><table align="left" border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr> 
+                      <!-- added padding here -->
+                      <td class="content_padding" style="padding : 0px; "><!-- end of comment -->
+                        
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                          <tr> <!-- top slot -->
+                            <td align="center" class="header" valign="top"><table align="left" border="0" cellpadding="0" cellspacing="0" width="100%">
+                                <tbody>
+                                  <tr>
+                                    <td align="left" valign="top"><table cellspacing="0" cellpadding="0" style="width:100%">
+                                        <tbody>
+                                          <tr>
+                                            <td class="responsive-td" valign="top" style="width: 100%;"><!-- Content Module Slots -->
+                                              <!-- Header/Navigation -->
+                                              <table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 20px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 5px 10px 0px 0px; " class="stylingblock-content-wrapper camarker-inner"><div class="navMenu textAlignCenter" align="right">
+ <span style="font-size:11px;"><a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="other" href="%%view_email_url%%" style="color:#000000; text-decoration:underline;" title="view online">View Online</a></span></div></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><!-- START AMPSCRIPT -->%%[if @cobranded == 'Y' OR @cobranded == 'Yes' then ]%%<table align="center" cellpadding="0" cellspacing="0" role="presentation" width="55%">
+
+  <tr>
+   <td align="center">
+    <a alias="" conversion="false" data-linkto="https://" href="%%=RedirectTo(@logoUrl)=%%" title=""><img alt="VSP Logo" height="70" src="http://img03.en25.com/EloquaImages/clients/VSPConsumer/%7B5b57c8c8-044c-47bf-8c78-35ce0996b978%7D_VSP_Logo_ShortTagRT_RGB.jpg" style="display: block; height: 74px; width: 156px; text-align: center; padding: 0px;" width="156"></a></td><td align="center">
+    <img alt="Spacer" height="auto" src="https://image.e.vsp.com/lib/fe2f117171640479731779/m/1/d73de522-66d4-4021-99af-cc2adad8f0d0.jpg" style="display: block; height: auto; width: 60px; text-align: center; padding: 0px;" width="60"></td><td align="center">
+    <a alias="" href="%%=RedirectTo(@cobrUrl)=%%" title=""><img alt="%%=v(@cobrAltTxt)=%%" height="auto" src="%%=v(@cobrLogo)=%%" style="display: block; height: auto; width: 156px; text-align: center; padding: 0px;" width="156"></a></td></tr></table> %%[ else ]%%<table align="center" cellpadding="0" cellspacing="0" role="presentation" width="156">
+ 
+  <tr>
+   <td align="center">
+    <a alias="" conversion="false" data-linkto="https://" href="%%=RedirectTo(@logoUrl)=%%" title=""><img alt="VSP Logo" height="74" src="http://img03.en25.com/EloquaImages/clients/VSPConsumer/%7B5b57c8c8-044c-47bf-8c78-35ce0996b978%7D_VSP_Logo_ShortTagRT_RGB.jpg" style="display: block; height: 74px; width: 156px; text-align: center; padding: 0px;" width="156"></a></td></tr></table> %%[ endif]%% <!-- END AMPSCRIPT --></td></tr></table>
+                                              <!-- Header/Navigation /-->
+                                              <!-- Body Content -->
+                                              <table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 20px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 5px 0px 0px; " class="stylingblock-content-wrapper camarker-inner"><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td class="responsive-td" style="width: 100%;" valign="top"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 5px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><div style="text-align: center;">
+ &nbsp;<img alt="search doctors" class="icon" src="https://image.e.vsp.com/lib/fe2f117171640479731779/m/1/e41c2f79-47ec-4cb9-ab82-23570f33bb5f.png" width="15">&nbsp; <a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="other" href="%%=RedirectTo(@navButton1Url)=%%" style="color:#000000;text-decoration:none; font-weight:400;" title="%%=v(@navButton1Text)=%%">%%=v(@navButton1Text)=%%</a>&nbsp; | &nbsp;<a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="other" href="%%=RedirectTo(@navButton2Url)=%%" style="color:#000000;text-decoration:none; font-weight:400;" title="%%=v(@navButton2Text)=%%">%%=v(@navButton2Text)=%%</a>&nbsp; |&nbsp;<a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="other" href="%%=RedirectTo(@navButton3Url)=%%" style="color:#000000;text-decoration:none; font-weight:400;" title="%%=v(@navButton3Text)=%%">%%=v(@navButton3Text)=%%</a></div></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 10px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><hr></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td class="responsive-td" style="width: 100%;" valign="top"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 20px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><h2 style="font-family: Arial, sans-serif; font-weight: bold; color: rgb(0, 48, 70); font-size: 35px; line-height: 40px; margin: 0px; text-align: center;">
+ %%=v(@heroHeader)=%%</h2></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 10px 0px 0px; " class="stylingblock-content-wrapper camarker-inner"><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td class="responsive-td" style="width: 100%;" valign="top"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding-bottom: 10px; " class="stylingblock-content-wrapper camarker-inner"><table width="100%" cellspacing="0" cellpadding="0" role="presentation"><tr><td align="center"><img src="%%=v(@heroImage)=%%" alt="%%=v(@heroAltText)=%%" width="660" style="display: block; padding: 0px; text-align: center; height: auto; width: 100%; border: 0px;"></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td class="responsive-td" style="width: 100%;" valign="top"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 10px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 10px 20px; " class="stylingblock-content-wrapper camarker-inner"><div style="font-size: 15px; line-height: 18px; font-family:verdana,sans-serif;color:#000000;font-weight:normal; text-align: center;">
+ %%=treatascontent(@heroText)=%%</div></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 10px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+ 
+  <tr>
+   <td align="center">
+    <!--[if mso]><table style="text-align:center;"><tr><td><![endif]--><table role="presentation" cellspacing="0" cellpadding="0" border="0">
+     
+      <tr>
+       <td class="innertd buttonblock" style=" border-radius: 1px; -moz-border-radius: 1px; -webkit-border-radius: 1px; background-color: 003046;" bgcolor="#003046">
+        <b><a alias="" conversion="false" data-linkto="other" href="%%=RedirectTo(@heroButtonUrl)=%%" style="color:#ffffff;text-decoration:none; font-size: 14px; text-transform: uppercase; font-family: Arial, Helvetica, sans-serif;background-color:003046; text-align: center; display: block; border: 3px solid #003046; padding: 15px 61px; border-radius: 1px; -moz-border-radius: 1px; -webkit-border-radius: 1px;" target="_blank" title="">%%=v(@heroButtonText)=%%</a></b></td></tr></table><!--[if mso]></td></tr></table><![endif]--></td></tr></table></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 20px 0px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 20px 0px 0px; " class="stylingblock-content-wrapper camarker-inner">
+            
+ <!-- START AMPSCRIPT -->%%[if @mod1Header == '' then ] %%&nbsp; %%[ else ]%%<table role="presentation" width="auto" cellspacing="0" cellpadding="0" align="center">
+ 
+  <tr>
+   <td align="center">
+    <img alt="%%=v(@mod1AltText)=%%" src="%%=v(@mod1Image)=%%" height="60" width="60" style="display: block; padding: 0px; text-align: center; height: 60px; width: 60px; border: 0px;" height="60" width="60"></td></tr></table><!-- END AMPSCRIPT --></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: #FFFFFF; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td class="responsive-td" style="width: 100%;" valign="top"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 5px 0px 10px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px 20px 10px; " class="stylingblock-content-wrapper camarker-inner"><h2 style="color : #808080; text-align: center; font-family: Arial, 'sans-serif';font-weight:bold; font-size: 30px; line-height: 28px;">
+ %%=v(@mod1Header)=%%</h2><div style="text-align: center; font-size: 15px; line-height: 18px; font-family:verdana,sans-serif;color:#000000;font-weight:normal;">
+ %%=v(@mod1Text)=%%</div></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 10px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+ 
+  <tr>
+   <td align="center">
+    <!--[if mso]><table style="text-align:center;"><tr><td><![endif]--><table role="presentation" cellspacing="0" cellpadding="0" border="0">
+     
+      <tr>
+       <td class="innertd buttonblock" style=" border-radius: 1px; -moz-border-radius: 1px; -webkit-border-radius: 1px; background-color: 003046;" bgcolor="#003046">
+        <b><a alias="" conversion="false" data-linkto="other" href="%%=RedirectTo(@mod1ButtonUrl)=%%" style="color:#ffffff;text-decoration:none; font-size: 14px; text-transform: uppercase; font-family: Arial, Helvetica, sans-serif;background-color:003046; text-align: center; display: block; border: 3px solid #003046; padding: 15px 61px; border-radius: 1px; -moz-border-radius: 1px; -webkit-border-radius: 1px;" target="_blank" title="">%%=v(@mod1ButtonText)=%%</a></b></td></tr></table><!--[if mso]></td></tr></table><![endif]--></td>
+   </tr></table></td></tr></table>%%[ endif]%% <!-- END AMPSCRIPT -->
+            </td></tr></table>
+            
+         <table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 15px 15px; 0px 15px;"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; border-top: 1px solid #000000; border-right: 0px; border-bottom: 0px; border-left: 0px; " class="stylingblock-content-wrapper"><tr><td style="padding: 25px 25px 0px; " class="stylingblock-content-wrapper camarker-inner"><table cellspacing="0" cellpadding="0" role="presentation" style="width: 100%;"><tr><td><table cellspacing="0" cellpadding="0" role="presentation" style="width: 100%;"><tr><td valign="top" class="responsive-td" style="width: 100%;"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 10px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px 10px 10px; " class="stylingblock-content-wrapper camarker-inner"><div style="text-align: center;">
+ Know someone who has lost or broken their eyewear to a recent natural disaster? <a href="https://vspglobal.com/cms/vspglobal-outreach/disasteroutreach.html" style="color:#004870;text-decoration:none;font-weight:bold; text-align:center;">We&rsquo;re here to help.</a></div></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 15px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; border-top: 1px solid #000000; border-right: 0px; border-bottom: 1px solid #000000; border-left: 0px; " class="stylingblock-content-wrapper"><tr><td style="padding: 25px; " class="stylingblock-content-wrapper camarker-inner"><table cellspacing="0" cellpadding="0" role="presentation" style="width: 100%;"><tr><td><table cellspacing="0" cellpadding="0" role="presentation" style="width: 100%;"><tr><td valign="top" class="responsive-td" style="width: 100%; padding-bottom: 3px;"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><div style="text-align: center;">
+ &nbsp; Download the VSP app to check benefits and find a doctor anytime, anywhere.</div></td></tr></table></td></tr></table></td></tr><tr><td><table cellspacing="0" cellpadding="0" role="presentation" style="width: 100%;"><tr><td valign="top" class="responsive-td" style="width: 100%; padding-top: 3px;"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td class="stylingblock-content-wrapper camarker-inner"><style type="text/css">
+@media only screen and (max-width: 480px) {  
+.drop {
+    display: block !important;
+    width: 100% !important;
+    float: left;
+    clear: both;
+}
+  .textAlignCenter {
+    text-align: center !important;
+}
+  }</style><!-- App Bar --><table border="0" cellpadding="0" cellspacing="0" width="100%">
+ 
+  <tr>
+   <!-- Column 1 --><th align="right" class="drop textAlignCenter" valign="top">
+    <!-- Image --><a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="https://" href="https://apps.apple.com/us/app/vsp-vision-care-on-the-go/id938497148" title=""><img alt="Download on the App Store" data-assetid="6034" src="https://image.e.vsp.com/lib/fe2f117171640479731779/m/1/0885d21b-eb8a-4f84-b436-87deca8ad78a.png" style="display: inline-block; width: 110px; padding: 0px; text-align: center; " width="110"></a><!-- Copy --></th><!-- Divider --><th class="drop" height="15" style="width:20px;" width="20">
+    <span>&nbsp;</span></th><!-- Column 2 --><th align="left" class="drop textAlignCenter" valign="top">
+    <a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="https://" href="https://play.google.com/store/apps/details?id=com.vsp.mobile" title=""><img alt="Get it on Google Play" src="https://image.e.vsp.com/lib/fe2f117171640479731779/m/1/2140f254-2c46-4a98-ad26-ec8bb8bee1e6.png" style="display: inline-block; width: 110px; padding: 0px; text-align: center; " width="110"></a></th></tr></table><!-- End App Bar --></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td>
+            
+            
+            
+            
+            
+            
+            </tr></table>
+                                              <!-- Body Content /-->
+                                              <!-- Footer -->
+                                              <table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 5px 0px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><table class="socialshare-wrapper" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center"><table cellspacing="0" cellpadding="0" align="center"><tr><td align="center"><!--[if mso]><table border="0" cellspacing="0" cellpadding="0"><tr><td style="padding-right:10px;"><![endif]--><table class="socialshare-innertable" style="display: inline-block"><tr><td style="padding:5px 10px"><a href="https://www.facebook.com/VSPVisionCare/" alias="facebook follow"><img src="https://image.s4.exct.net/lib/fe911573736c007d7d/m/2/1a560d12-c8d7-40cb-9e90-9df36933fdfa.png" alt="Facebook" style="display: block;; width: 24px !important; height: 24px !important" width="24" height="24"></a></td></tr></table><!--[if mso]></td><td style="padding-right:10px;"><![endif]--><table class="socialshare-innertable" style="display: inline-block"><tr><td style="padding:5px 10px"><a href="https://twitter.com/VSPVisionCare" alias="twitter follow"><img src="https://image.s4.exct.net/lib/fe911573736c007d7d/m/2/a3b47106-a80a-401f-8435-6b6398001c4f.png" alt="Twitter" style="display: block;; width: 24px !important; height: 24px !important" width="24" height="24"></a></td></tr></table><!--[if mso]></td><td style="padding-right:10px;"><![endif]--><table class="socialshare-innertable" style="display: inline-block"><tr><td style="padding:5px 10px"><a href="https://www.youtube.com/user/vspvisioncare" alias="youtube follow"><img src="https://image.s4.exct.net/lib/fe911573736c007d7d/m/2/287abafd-6473-47a9-b05b-30526dc265fd.png" alt="YouTube" style="display: block;; width: 24px !important; height: 24px !important" width="24" height="24"></a></td></tr></table><!--[if mso]></td><td style="padding-right:10px;"><![endif]--><table class="socialshare-innertable" style="display: inline-block"><tr><td style="padding:5px 10px"><a href="https://www.pinterest.com/VSPVisionCare/" alias="pinterest follow"><img src="https://image.s4.exct.net/lib/fe911573736c007d7d/m/2/8481a609-e71f-4aae-9e00-44f0a2fbd89f.png" alt="Pinterest" style="display: block;; width: 24px !important; height: 24px !important" width="24" height="24"></a></td></tr></table><!--[if mso]></td><td><![endif]--><table class="socialshare-innertable" style="display: inline-block"><tr><td style="padding:5px 10px"><a href="https://www.instagram.com/vspvisioncare/" alias="instagram follow"><img src="https://image.s4.exct.net/lib/fe911573736c007d7d/m/2/0e6fddf1-c205-4752-ad42-e9dc03c83dea.png" alt="Instagram" style="display: block;; width: 24px !important; height: 24px !important" width="24" height="24"></a></td></tr></table><!--[if mso]></td></tr></table><![endif]--></td></tr></table></td></tr></table></td></tr></table></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 10px 0px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 20px; " class="stylingblock-content-wrapper camarker-inner"><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td><table style="width: 100%;" cellspacing="0" cellpadding="0"><tr><td class="responsive-td" style="width: 100%;" valign="top"><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px 0px 10px; " class="stylingblock-content-wrapper camarker-inner"><div style="text-align: center; line-height: 100%;">
+ <span style="font-size:10px;">%%=v(@footnoteAddon01)=%%<br>
+ <span style="font-size:10px;">%%=v(@footnoteAddon02)=%%<br>
+ <br>
+ Brands and offers are subject to change. In the event of a conflict between this information and your organization&rsquo;s contract with VSP, the terms of the contract will prevail. Based on applicable laws, benefits may vary by location.<br>
+ <br>
+ %%[if client_id == '00865701' and membership_status == 'A' then]%%This email is from Apple's third-party partner, VSP. If you have received this email in error, please notify <b><a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="mailto:" href="mailto:AskInfoSec@apple.com?subject=" style="color:#0069B5;text-decoration:none;" title="AskInfoSec@apple.com">AskInfoSec@apple.com</a></b>. Visit Information Security's <a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="https://" href="https://infosec.apple.com/guidance/everyone/phishing_smishing/#approved-third-party-service-urls-and-email-addresses" style="color:#0069B5;text-decoration:none;" title="">Phishing, Smishing, and Vishing page</a> for more about Apple's approved third-party service email addresses. Log in to vsp.com to check your benefits for eligibility and to confirm in-network locations based on your plan type.<br>
+ <br>
+ %%[elseif client_id == '30076975' and membership_status == 'A' then]%% This email is from VSP Vision Care, an approved <a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="https://" href="https://myhr.one.dell.com/Local/US/Benefits/Pages/Benefits-Vendors.aspx" style="color:#0069B5;text-decoration:none;" title="Dell Technologies Benefits vendor">Dell Technologies Benefits vendor</a>.<br>
+ <br>
+ %%[endif]%% You are receiving this email as part of your <b>Benefits Information</b> from VSP Vision Care.<br>
+ <br>
+ Please do not reply to this email. This mailbox is not monitored and you will not receive a response. If you have questions, contact Member Services using <a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="https://" href="https://www.vsp.com/contact-us/email-customer-service" style="color:#0069B5;text-decoration:none;" title="this form on vsp.com">this form on vsp.com</a>&nbsp;or by calling <a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="http://" href="tel:%%=v(@phone)=%%" style="color:#0069B5;text-decoration:none;" title="%%=v(@phone)=%%">%%=v(@phoneNumber)=%%</a>&nbsp;and we&rsquo;ll be happy to assist you.</span></span></div></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding-bottom: 10px; " class="stylingblock-content-wrapper camarker-inner"><div style="text-align: center; line-height: 100%;">
+ <span style="font-size:10px;">3333 Quality Drive | Rancho Cordova, CA 95670<br data-builder-location="784,106">
+ <br data-builder-location="785,8">
+ &copy;%%xtyear%% Vision Service Plan. All rights reserved.<br>
+ VSP, VSP Vision care for life, and Eyeconic are registered trademarks of Vision Service Plan. Bausch + Lomb is a registered trademark of Bausch + Lomb, Incorporated. All other brands or marks are the property of their respective owners.</span></div></td></tr></table><table cellpadding="0" cellspacing="0" width="100%" role="presentation" class="stylingblock-content-wrapper" style="min-width: 100%; "><tr><td class="stylingblock-content-margin-cell" style="padding: 10px; "><table cellpadding="0" cellspacing="0" width="100%" role="presentation" style="background-color: transparent; min-width: 100%; " class="stylingblock-content-wrapper"><tr><td style="padding: 0px; " class="stylingblock-content-wrapper camarker-inner"><div style="text-align: center;">
+ <span style="font-size:10px;"><b><a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="https://" href="https://www.vsp.com/contact-us/email-customer-service" style="color:#000000;text-decoration:none;" title="Contact Us">Contact Us</a></b> |&nbsp; <b><a alias="%%=v(@version_id)=%%" conversion="false" href="%%=RedirectTo(CloudPagesURL(112, 'SubKey', _subscriberkey))=%%" style="color:#000000;text-decoration:none;" title="">Manage My Subscription</a>&nbsp;&nbsp;</b>|&nbsp; <b><a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="https://" href="https://www.vsp.com/legal/privacy" style="color:#000000;text-decoration:none;" title="HIPAA Privacy Policy">HIPAA Privacy Policy</a></b>&nbsp; |&nbsp; <b><a alias="%%=v(@version_id)=%%" conversion="false" data-linkto="https://" href="https://www.vsp.com/legal/terms-of-service" style="color:#000000;text-decoration:none;" title="Terms of Service">Terms of Service</a></b></span></div><br>
+&nbsp;</td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table>
+                                              <!-- Footer /-->
+                                              <!-- Content Module Slots --></td>
+                                          </tr>
+                                        </tbody>
+                                      </table></td>
+                                  </tr>
+                                </tbody>
+                              </table></td>
+                          </tr>
+                        </table></td>
+                    </tr>
+                  </table></td>
+              </tr>
+            </table></td>
+        </tr>
+      </table>
+      
+      <!-- Inner Wrapper /--></td>
+  </tr>
+
+</table>
+<!-- Main Wrapper /-->
+  <!-- Custom Footer Code -->
+<div data-type="slot" data-key="zly7jctu7h8" data-label="Custom Code at Bottom">
+    <!-- Custom Footer Code /-->
+  </div>
+</body>
+</html>
