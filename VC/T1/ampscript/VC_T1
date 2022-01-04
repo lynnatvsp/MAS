@@ -1,0 +1,201 @@
+%%[
+
+var @version_id
+var @VWZip
+
+set @test_hardcoded_version_id = '' /*will overwrite any version id and logic*/
+set @test_version_id = test_version_id /*if user has this value in DE, this value will be used instead of logic*/
+set @First_Name = first_name
+set @Last_Name = last_name
+set @client_id = client_id
+set @zip = zip
+set @state = state
+set @ab_test = AB_Test
+set @Strategic_Alliance_Code = strategic_alliance_code 
+set @class_id = class_id
+set @member_coverage_code = member_coverage_code
+set @notes = notes
+
+
+
+/*--------------set Visionworks Zip--------------*/
+if RowCount(LookupRows('VW_Zips','zip',@zip)) then
+set @VWZip = 'Y'
+else
+set @VWZip = 'N'
+endif
+
+
+/*--------------set Audience--------------*/
+if @test_hardcoded_version_id == '' then
+  if @test_version_id == '' then
+    if @client_id == '12297318' OR @client_id == '12297317' then
+    set @version_id = 'VC_Fed_T1'
+
+    elseif (@client_id == '12130213' OR @client_id == '12006223') then
+    set @version_id = 'VC_Allstate_T1'
+
+    elseif (@client_id == '12023569' AND @state == 'OH') then
+    set @version_id = 'VC_Progressive_T1'
+
+    elseif @client_id == '30079492' then
+    set @version_id = 'VC_Coalfire_T1'
+
+    elseif (@client_id == '12101422' AND @class_id == '0014') then
+    set @version_id = 'VC_UnitedRentals_T1'
+
+    elseif (@Strategic_Alliance_Code == 'GUARDIAN LIFE INSURANCE' AND @VWZip == 'Y') then
+    set @version_id = 'VC_VW_Guardian_T1'
+
+    elseif @Strategic_Alliance_Code == 'GUARDIAN LIFE INSURANCE' then
+    set @version_id = 'VC_Guardian_T1'
+
+    elseif (@Strategic_Alliance_Code == 'AMERITAS LIFE & DENTAL' AND @VWZip == 'Y') then
+    set @version_id = 'VC_VW_Ameritas_T1'
+
+    elseif @Strategic_Alliance_Code == 'AMERITAS LIFE & DENTAL' then
+    set @version_id = 'VC_Ameritas_T1'
+
+    elseif (@Strategic_Alliance_Code == 'AXA Equitable' AND @VWZip == 'Y') then
+    set @version_id = 'VC_VW_Equitable_T1'
+
+    elseif @Strategic_Alliance_Code == 'AXA Equitable' then
+    set @version_id = 'VC_Equitable_T1'
+
+    elseif (@Strategic_Alliance_Code == 'KANSAS CITY LIFE INSURANCE COM' AND @VWZip == 'Y') then
+    set @version_id = 'VC_VW_KCL_T1'
+
+    elseif @Strategic_Alliance_Code == 'KANSAS CITY LIFE INSURANCE COM' then
+    set @version_id = 'VC_KCL_T1'
+
+    elseif @VWZip == 'Y' then
+    set @version_id = 'VC_VW_Gen_T1'
+
+    else
+    set @version_id = 'VC_Gen_T1'
+    endif
+  else
+  set @version_id = @test_version_id
+  endif
+else
+set @version_id = @test_hardcoded_version_id
+endif
+
+
+/*--------------Pull Content from Content Blocks --------------*/
+/*ContentBlockbyKey(@version_id)*/
+
+
+/*--------------Pull Content from DE --------------*/
+
+if RowCount(LookupRows('VC_T1_Content','version_id',@version_id)) then
+else
+ RaiseError("Version not available")
+endif 
+
+
+
+set @Business_Name = TreatAsContent(Lookup("VC_T1_Content", "Business_Name", "VERSION_ID", @version_id))
+set @version_id  = TreatAsContent(Lookup("VC_T1_Content", "version_id ", "VERSION_ID", @version_id))
+set @subjectLine = TreatAsContent(Lookup("VC_T1_Content", "subjectLine", "VERSION_ID", @version_id))
+set @preHeader = TreatAsContent(Lookup("VC_T1_Content", "preHeader", "VERSION_ID", @version_id))
+set @idCard = TreatAsContent(Lookup("VC_T1_Content", "idCard", "VERSION_ID", @version_id))
+set @copayExam = TreatAsContent(Lookup("VC_T1_Content", "copayExam", "VERSION_ID", @version_id))
+set @copayFrame = TreatAsContent(Lookup("VC_T1_Content", "copayFrame", "VERSION_ID", @version_id))
+set @copayLens = TreatAsContent(Lookup("VC_T1_Content", "copayLens", "VERSION_ID", @version_id))
+set @logoUrl = TreatAsContent(Lookup("VC_T1_Content", "logoUrl", "VERSION_ID", @version_id))
+set @cobranded = TreatAsContent(Lookup("VC_T1_Content", "cobranded", "VERSION_ID", @version_id))
+set @cobrLogo = TreatAsContent(Lookup("VC_T1_Content", "cobrLogo", "VERSION_ID", @version_id))
+set @cobrAltText = TreatAsContent(Lookup("VC_T1_Content", "cobrAltText", "VERSION_ID", @version_id))
+set @cobrUrl = TreatAsContent(Lookup("VC_T1_Content", "cobrUrl", "VERSION_ID", @version_id))
+set @navButton1Text = TreatAsContent(Lookup("VC_T1_Content", "navButton1Text", "VERSION_ID", @version_id))
+set @navButton1Url = TreatAsContent(Lookup("VC_T1_Content", "navButton1Url", "VERSION_ID", @version_id))
+set @navButton2Text = TreatAsContent(Lookup("VC_T1_Content", "navButton2Text", "VERSION_ID", @version_id))
+set @navButton2Url = TreatAsContent(Lookup("VC_T1_Content", "navButton2Url", "VERSION_ID", @version_id))
+set @navButton3Text = TreatAsContent(Lookup("VC_T1_Content", "navButton3Text", "VERSION_ID", @version_id))
+set @navButton3Url = TreatAsContent(Lookup("VC_T1_Content", "navButton3Url", "VERSION_ID", @version_id))
+set @heroHeader = TreatAsContent(Lookup("VC_T1_Content", "heroHeader", "VERSION_ID", @version_id))
+set @heroImage = TreatAsContent(Lookup("VC_T1_Content", "heroImage", "VERSION_ID", @version_id))
+set @heroAltText = TreatAsContent(Lookup("VC_T1_Content", "heroAltText", "VERSION_ID", @version_id))
+set @heroTextAlign = TreatAsContent(Lookup("VC_T1_Content", "heroTextAlign", "VERSION_ID", @version_id))
+set @heroText = TreatAsContent(Lookup("VC_T1_Content", "heroText", "VERSION_ID", @version_id))
+set @heroButtonText = TreatAsContent(Lookup("VC_T1_Content", "heroButtonText", "VERSION_ID", @version_id))
+set @heroButtonUrl = TreatAsContent(Lookup("VC_T1_Content", "heroButtonUrl", "VERSION_ID", @version_id))
+set @mod1Image = TreatAsContent(Lookup("VC_T1_Content", "mod1Image", "VERSION_ID", @version_id))
+set @mod1AltText = TreatAsContent(Lookup("VC_T1_Content", "mod1AltText", "VERSION_ID", @version_id))
+set @mod1Header = TreatAsContent(Lookup("VC_T1_Content", "mod1Header", "VERSION_ID", @version_id))
+set @mod1Text = TreatAsContent(Lookup("VC_T1_Content", "mod1Text", "VERSION_ID", @version_id))
+set @mod1ButtonText = TreatAsContent(Lookup("VC_T1_Content", "mod1ButtonText", "VERSION_ID", @version_id))
+set @mod1ButtonUrl = TreatAsContent(Lookup("VC_T1_Content", "mod1ButtonUrl", "VERSION_ID", @version_id))
+set @footnoteAddon01 = TreatAsContent(Lookup("VC_T1_Content", "footnoteAddon01", "VERSION_ID", @version_id))
+set @footnoteAddon02 = TreatAsContent(Lookup("VC_T1_Content", "footnoteAddon02", "VERSION_ID", @version_id))
+set @footnoteAddon03 = TreatAsContent(Lookup("VC_T1_Content", "footnoteAddon03", "VERSION_ID", @version_id))
+set @footnoteAddon04 = TreatAsContent(Lookup("VC_T1_Content", "footnoteAddon04", "VERSION_ID", @version_id))
+set @phoneNumber = TreatAsContent(Lookup("VC_T1_Content", "phoneNumber", "VERSION_ID", @version_id))
+
+
+
+/*--------------Set Super Secret GA UTM Code--------------*/
+set @utmSource = 'vcessential'
+set @utmCampaign = @version_id
+set @utmVsp = concat('utm_medium=email&utm_source=', @utmSource, '&utm_campaign=', @version_id)
+ContentBlockbyKey('f_vcGaUtmV2') <<<<<<<<<<<< Change that to f_vcGaUtmV2
+
+/*--------------Add UTMs to links--------------*/
+set @urlNoUtm = @cobrUrl 
+ContentBlockbyKey('f_urlUtm')
+set @cobrUrl = @urlUtm
+
+set @urlNoUtm = @logoUrl
+ContentBlockbyKey('f_urlUtm')
+set @logoUrl = @urlUtm
+
+set @urlNoUtm = @navButton1Url
+ContentBlockbyKey('f_urlUtm')
+set @navButton1Url = @urlUtm
+
+set @urlNoUtm = @navButton2Url
+ContentBlockbyKey('f_urlUtm')
+set @navButton2Url = @urlUtm
+
+set @urlNoUtm = @navButton3Url
+ContentBlockbyKey('f_urlUtm')
+set @navButton3Url = @urlUtm
+
+set @urlNoUtm = @heroButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @heroButtonUrl = @urlUtm
+
+set @urlNoUtm = @mod1ButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @mod1ButtonUrl = @urlUtm
+
+set @urlNoUtm = @mod2ButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @mod2ButtonUrl = @urlUtm
+
+set @urlNoUtm = @mod3ButtonUrl
+ContentBlockbyKey('f_urlUtm')
+set @mod3ButtonUrl = @urlUtm
+
+
+/*--------------Add UTMs to links found in text, add html to reg mark, etc.--------------*/
+set @contentInlineLink = @heroText
+ContentBlockbyKey('f_urlInContentUtm')
+set @heroText = @contentInlineLinkUtm
+
+set @contentInlineLink = @mod1Text
+ContentBlockbyKey('f_urlInContentUtm')
+set @mod1Text = @contentInlineLinkUtm
+
+set @contentInlineLink = @mod2Text
+ContentBlockbyKey('f_urlInContentUtm')
+set @mod2Text = @contentInlineLinkUtm
+
+set @contentInlineLink = @mod3Text
+ContentBlockbyKey('f_urlInContentUtm')
+set @mod3Text = @contentInlineLinkUtm
+  
+]%%
+
+%%=TreatAsContent(concat("%", "%=BeginImpressionRegion('", @version_id, "')=%", "%"))=%%
