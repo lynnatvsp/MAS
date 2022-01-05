@@ -195,6 +195,174 @@ set @mod2Text = @contentInlineLinkUtm
 set @contentInlineLink = @mod3Text
 ContentBlockbyKey('f_urlInContentUtm')
 set @mod3Text = @contentInlineLinkUtm
+
+
+/*------------ Send Log Start----------*/
+set @de_name = de_name /*------------ used to push data back to same DE----------*/
+set @sendLogStatus = 'Y' /*------------ Set to Y before sending, Set to N while testing----------*/
+
+if @sendLogStatus == 'Y' then
+  if not (empty(jobid)) then
+  set @tsdid = Lookup("_Job", "TriggererSendDefinitionObjectID", "JobID", jobid)
+  set @journey_version_id = Lookup("_JourneyActivity", "VersionID", "JourneyActivityObjectID", @tsdid)
+  set @journey_name = Lookup("_Journey", "JourneyName", "VersionID", @journey_version_id)
+
+  
+  /*var @version_id*/
+  var @email_address
+  var @email_name
+
+  set @email_address = email_address
+  set @email_name = emailname_
+
+  UpdateDE(@de_name, 1 ,"email_address", @email_address, "version_id", @version_id, "email_name", @email_name, "journey_name", @journey_name)
+
+
+  set @CLAIM_NUMBER_PLUS_EXT = CLAIM_NUMBER_PLUS_EXT
+  set @DATE_OF_NOTICE = DATE_OF_NOTICE
+  if @DATE_OF_NOTICE == '' then
+   set @DATE_OF_NOTICE = '1/1/1800'
+  endif
+  set @DATE_OF_SERVICE = DATE_OF_SERVICE
+  if @DATE_OF_SERVICE == '' then
+   set @DATE_OF_SERVICE = '1/1/1800'
+  endif
+  set @RECIPIENT_STATE = RECIPIENT_STATE
+  set @CLIENT_ID = CLIENT_ID
+  set @CLIENT_DIVISION_ID = CLIENT_DIVISION_ID
+  set @CLIENT_NAME = CLIENT_NAME
+  set @GROUP_POPULATION_CODE = GROUP_POPULATION_CODE
+  set @TOTAL_AMOUNT_SAVED = TOTAL_AMOUNT_SAVED
+  set @NETWORK_FLAG = NETWORK_FLAG
+  set @BENEFIT_TYPE_CODE = BENEFIT_TYPE_CODE
+  set @CLAIM_LENS_CODE = CLAIM_LENS_CODE
+  set @CUSTOMER_SERVICE_PHONE_NUMBER = CUSTOMER_SERVICE_PHONE_NUMBER
+  set @VBS_LOGO_CODE = VBS_LOGO_CODE
+  set @STRATIGIC_ALLIANCE_CD = STRATIGIC_ALLIANCE_CD
+  set @EXPANDED_MEMBER_ID = EXPANDED_MEMBER_ID
+  set @ACCOUNT_1_CODE = ACCOUNT_1_CODE
+  set @EMAIL_SOURCE_CODE = EMAIL_SOURCE_CODE
+  set @UNIQUE_CLAIM_NUMBER = UNIQUE_CLAIM_NUMBER
+  set @CLM_PD_DT = CLM_PD_DT
+  set @CONSUMER_ID = CONSUMER_ID
+  set @CLM_EXT_NBR = CLM_EXT_NBR
+  set @SUBSCRIBER_FIRST_NAME = SUBSCRIBER_FIRST_NAME
+  set @SUBSCRIBER_LAST_NAME = SUBSCRIBER_LAST_NAME
+  set @CLMLN_DISCOUNTS_AMT = CLMLN_DISCOUNTS_AMT
+  set @DAYS_TO_WAIT = DAYS_TO_WAIT
+  set @CLM_TotalSavings = CLM_TotalSavings
+  set @R_Entered_Campaign = R_Entered_Campaign
+  if @R_Entered_Campaign == '' then
+   set @R_Entered_Campaign = '1/1/1800'
+  endif
+  set @R_Hardbounce = R_Hardbounce
+  if @R_Hardbounce == '' then
+   set @R_Hardbounce = '1/1/1800'
+  endif
+  set @R_Unsubsribed = R_Unsubsribed
+  if @R_Unsubsribed == '' then
+   set @R_Unsubsribed = '1/1/1800'
+  endif
+  set @R_Business_Exclude = R_Business_Exclude
+  if @R_Business_Exclude == '' then
+   set @R_Business_Exclude = '1/1/1800'
+  endif
+  set @R_NoMatch = R_NoMatch
+  if @R_NoMatch == '' then
+   set @R_NoMatch = '1/1/1800'
+  endif
+  set @primary_individual_identifier = primary_individual_identifier
+  set @EMAIL = EMAIL
+  set @C_Vision_Savings_Pass1 = C_Vision_Savings_Pass1
+  set @Strategic_Alliance_Code = Strategic_Alliance_Code
+  set @State = State
+  set @zip = zip
+  set @ab_test = ab_test
+  set @member_coverage_code = member_coverage_code
+  set @notes = notes
+  set @class_id = class_id
+  set @membership_status = membership_status
+  set @date_of_birth = date_of_birth
+  if @date_of_birth == '' then
+   set @date_of_birth = '1/1/1800'
+  endif
+  set @first_name = first_name
+  set @last_name = last_name
+  set @parent_indicator = parent_indicator
+  set @Eligible_For_Materials_Ind = Eligible_For_Materials_Ind
+  set @Eligible_For_Exam_Ind = Eligible_For_Exam_Ind
+  set @email_source = email_source
+  set @email_address = email_address
+  /*set @Opt_In_VC_Benefits = Opt_In_VC_Benefits
+  set @Benefits_Optin = Benefits_Optin
+  set @Ex_VC_Global_Client_Opt_Out = Ex_VC_Global_Client_Opt_Out
+  set @Ex_VC_Future_Terming_Clients = Ex_VC_Future_Terming_Clients
+  set @VSPActive = VSPActive
+  set @VSPPrimary = VSPPrimary
+  set @do_not_contact = do_not_contact*/
+
+
+  InsertDE("VC_T3_Send_Log"
+  ,"EMAIL", @EMAIL
+  ,"CLAIM_NUMBER_PLUS_EXT", @CLAIM_NUMBER_PLUS_EXT
+  ,"DATE_OF_NOTICE", @DATE_OF_NOTICE
+  ,"DATE_OF_SERVICE", @DATE_OF_SERVICE
+  ,"RECIPIENT_STATE", @RECIPIENT_STATE
+  ,"CLIENT_ID", @CLIENT_ID
+  ,"CLIENT_DIVISION_ID", @CLIENT_DIVISION_ID
+  ,"CLIENT_NAME", @CLIENT_NAME
+  ,"GROUP_POPULATION_CODE", @GROUP_POPULATION_CODE
+  ,"TOTAL_AMOUNT_SAVED", @TOTAL_AMOUNT_SAVED
+  ,"NETWORK_FLAG", @NETWORK_FLAG
+  ,"BENEFIT_TYPE_CODE", @BENEFIT_TYPE_CODE
+  ,"CLAIM_LENS_CODE", @CLAIM_LENS_CODE
+  ,"CUSTOMER_SERVICE_PHONE_NUMBER", @CUSTOMER_SERVICE_PHONE_NUMBER
+  ,"VBS_LOGO_CODE", @VBS_LOGO_CODE
+  ,"STRATIGIC_ALLIANCE_CD", @STRATIGIC_ALLIANCE_CD
+  ,"EXPANDED_MEMBER_ID", @EXPANDED_MEMBER_ID
+  ,"ACCOUNT_1_CODE", @ACCOUNT_1_CODE
+  ,"EMAIL_SOURCE_CODE", @EMAIL_SOURCE_CODE
+  ,"UNIQUE_CLAIM_NUMBER", @UNIQUE_CLAIM_NUMBER
+  ,"CLM_PD_DT", @CLM_PD_DT
+  ,"CONSUMER_ID", @CONSUMER_ID
+  ,"CLM_EXT_NBR", @CLM_EXT_NBR
+  ,"SUBSCRIBER_FIRST_NAME", @SUBSCRIBER_FIRST_NAME
+  ,"SUBSCRIBER_LAST_NAME", @SUBSCRIBER_LAST_NAME
+  ,"CLMLN_DISCOUNTS_AMT", @CLMLN_DISCOUNTS_AMT
+  ,"DAYS_TO_WAIT", @DAYS_TO_WAIT
+  ,"CLM_TotalSavings", @CLM_TotalSavings
+  ,"R_Entered_Campaign", @R_Entered_Campaign
+  ,"R_Hardbounce", @R_Hardbounce
+  ,"R_Unsubsribed", @R_Unsubsribed
+  ,"R_Business_Exclude", @R_Business_Exclude
+  ,"R_NoMatch", @R_NoMatch
+  ,"primary_individual_identifier", @primary_individual_identifier
+  ,"C_Vision_Savings_Pass1", @C_Vision_Savings_Pass1
+  ,"Strategic_Alliance_Code", @Strategic_Alliance_Code
+  ,"State", @State
+  ,"zip", @zip
+  ,"ab_test", @ab_test
+  ,"member_coverage_code", @member_coverage_code
+  ,"notes", @notes
+  ,"class_id", @class_id
+  ,"membership_status", @membership_status
+  ,"date_of_birth", @date_of_birth
+  ,"first_name", @first_name
+  ,"last_name", @last_name
+  ,"parent_indicator", @parent_indicator
+  ,"Eligible_For_Materials_Ind", @Eligible_For_Materials_Ind
+  ,"Eligible_For_Exam_Ind", @Eligible_For_Exam_Ind
+  ,"email_source", @email_source
+  ,"email_address", @email_address
+  ,"campaign", @campaign
+  ,"email_name", @email_name
+  ,"journey_name", @journey_name
+  ,"version_id", @version_id
+  )
+  endif
+endif
+  
+/*------------ Send Log END----------*/
   
 ]%%
 
